@@ -58,6 +58,7 @@ CHIP ALU {
 	Not16(in=afterF, out=notAfterF);
 	
 	Mux16(a=afterF, b=notAfterF, sel=no, out[0..7]=outLSB, out[8..14]=outMSBs, out[15]=outMSB);
+	//Duplicate
 	And16(a[0..7]=outLSB, a[8..14]=outMSBs, a[15]=outMSB, b=true, out=out);
 	
 	Xor(a=outMSB, b=false, out=ng);
