@@ -16,26 +16,16 @@ CHIP PC {
     OUT out[16];
 
     PARTS:
-    // Put your code here:
-    Mux16(a=false, b=false, sel=reset, out=muxOutReset); // reset
-
-    // unset the load bit if the reset bit is set
-    Not(in=reset, out=notReset);
-    And(a=notReset, b=load, out=loadAndNotReset);
-
-    Mux16(a=false, b=in, sel=loadAndNotReset, out=muxOutLoad); // load
-
-    // unset the inc bit if reset ot load bit are set
-    Not(in=load, out=notLoad);
-    And(a=notReset, b=inc, out=notResetAndInc);
-    And(a=notResetAndInc, b=notLoad, out=notResetAndIncAndNotLoad);
-
-    Inc16(in=dffOut, out=dffOutInc); // inc
-    Mux16(a=false, b=dffOutInc, sel=notResetAndIncAndNotLoad, out=muxOutInc);
-    
-    Or16(a=muxOutReset, b=muxOutLoad, out=muxOut1);
-    Or16(a=muxOut1, b=muxOutInc, out=muxOut);
-    
-    Register(in=muxOut, load=true, out=dffOut);    
-    Or16(a=dffOut, b=dffOut, out=out);
+	Mux(a=load,b=false,sel=reset,out=updatedLoad);
+	Or(a=load, b=reset, out=loadOrReset);
+	Mux(a=inc, b=false, sel=loadOrReset, out=updatedInc);
+	
+    Register(in=regIn, load=true, out=regOut);
+	Inc16(in=regOut, out=afterInc);
+	Or(a=updatedLoad, b=updatedInc, out=MSB);
+	Or(a=updatedInc, b=reset, out=LSB);
+	
+	
+	Mux4Way16(a=regOut, b=false, c=in, d=afterInc, sel[0]=LSB, sel[1]=MSB, out=regIn);
+	Or16(a=regOut, b=regOut, out=out);
 }
