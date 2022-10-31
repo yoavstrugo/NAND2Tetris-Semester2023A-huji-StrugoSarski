@@ -1,8 +1,6 @@
-// This file is part of nand2tetris, as taught in The Hebrew University, and
-// was written by Aviv Yaish. It is an extension to the specifications given
-// [here](https://www.nand2tetris.org) (Shimon Schocken and Noam Nisan, 2017),
-// as allowed by the Creative Common Attribution-NonCommercial-ShareAlike 3.0
-// Unported [License](https://creativecommons.org/licenses/by-nc-sa/3.0/).
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
 // File name: projects/02/ALU.hdl
 
 /**
@@ -44,10 +42,27 @@ CHIP ALU {
         ng; // 1 if (out < 0),  0 otherwise
 
     PARTS:
-    // You're advised to work on the ALU chip in two steps:
-    // - First, without handling status outputs (ALU-nostat)
-    // - Then, adding the missing functionality for the "full" chip (ALU). 
-    // You only need to submit the "full" ALU, no need to submit the partial
-    // implementation (ALU-nostat).
-    // Put your code here:
+	// if (zx == 1) set x = 0        // 16-bit constant
+	Mux16(a=x, b=false, sel=zx, out=updated0x);
+	Mux16(a=y, b=false, sel=zy, out=updated0y);
+	
+	Not16(in=updated0x, out=updatedNotX);
+	Not16(in=updated0y, out=updatedNotY);
+	
+	Mux16(a=updated0x, b=updatedNotX, sel=nx, out=updatedX);
+	Mux16(a=updated0y, b=updatedNotY, sel=ny, out=updatedY);
+	
+	Add16(a=updatedX, b=updatedY, out=xPlusY);
+	And16(a=updatedX, b=updatedY, out=xAndY);
+	Mux16(a=xAndY, b=xPlusY, sel=f, out=afterF);
+	Not16(in=afterF, out=notAfterF);
+	
+	Mux16(a=afterF, b=notAfterF, sel=no, out[0..7]=outLSB, out[8..14]=outMSBs, out[15]=outMSB);
+	And16(a[0..7]=outLSB, a[8..14]=outMSBs, a[15]=outMSB, b=true, out=out);
+	
+	Xor(a=outMSB, b=false, out=ng);
+	Or8Way(in=outLSB, out=outFirstHalf);
+	Or8Way(in[0..6]=outMSBs, in[7]=outMSB, out=outSecondHalf);
+	Or(a=outFirstHalf, b=outSecondHalf, out=nzr);
+	Not(in=nzr, out=nz);
 }
