@@ -48,6 +48,9 @@ D=M
 @R2
 M=M+D
 
+@LOOP
+0; JMP
+
 (END)
 @END
 0;JMP
