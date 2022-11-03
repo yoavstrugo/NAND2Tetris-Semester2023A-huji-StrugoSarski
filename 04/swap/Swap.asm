@@ -15,3 +15,121 @@
 // - Changing R14, R15 is not allowed.
 
 // Put your code here.
+//Go through all the stuffs keeping in mind MIN MAX MIN_POINTER MAX_POINTER
+@R14
+D=M
+@CUR
+M=D
+
+@R15
+D=D+M
+@END
+M=D
+
+// Start values
+@R14
+D=M
+@MIN_POINTER
+M=D
+
+@MAX_POINTER
+M=D
+
+A=D
+D=M
+@MIN
+M=D
+
+@MAX
+M=D
+
+// First increment
+@CUR
+M=M+1
+
+(LOOP)
+@END
+D=M
+@CUR
+D=D-M
+@FINISH
+D; JEQ
+
+//Check if [cur] is bigger then max value
+@CUR
+A=M
+D=M
+@MAX
+D=D-M
+@FOUND_MAX
+D; JGE
+
+//Check if [cur] is smaller then min value
+@CUR
+A=M
+D=M
+@MIN
+D=D-M
+@FOUND_MIN
+D; JLT
+
+
+// Increment
+(INCREMENT)
+@CUR
+M=M+1
+@LOOP
+A; JMP
+// Check if we've reached the end.
+
+
+(FINISH)
+@MAX
+D=M
+@MIN_POINTER
+A=M
+
+M=D
+
+@MIN
+D=M
+@MAX_POINTER
+A=M
+
+M=D
+
+
+(BLACK_HOLE)
+@BLACK_HOLE
+0; JMP
+
+
+(FOUND_MAX)
+// Swap MAX_POINTER
+@CUR
+D=M
+@MAX_POINTER
+M=D
+
+//Swap MAX
+A=D
+D=M
+@MAX
+M=D
+@INCREMENT
+0; JMP
+
+(FOUND_MIN)
+// Swap MIN_POINTER
+@CUR
+D=M
+@MIN_POINTER
+M=D
+
+//Swap MIN
+A=D
+D=M
+@MIN
+M=D
+@INCREMENT
+0; JMP
