@@ -16,4 +16,38 @@
 // - Your program should not change the values stored in R0 and R1.
 // - You can implement any multiplication algorithm you want.
 
-// Put your code here.
+//count=R1
+//R2=0
+//(loop)
+//If count == 0 jmp end
+//R2 += R0
+//count--
+//jmp loop
+//end
+//jmp end
+
+@R2
+M=0
+
+@R1
+D=M
+@COUNT
+M=D
+
+(LOOP)
+@COUNT
+D=M
+@END
+D; JEQ
+D=D-1
+@COUNT
+M=D
+
+@R0
+D=M
+@R2
+M=M+D
+
+(END)
+@END
+0;JMP
