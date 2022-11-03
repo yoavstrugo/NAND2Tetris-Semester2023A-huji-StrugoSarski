@@ -14,8 +14,21 @@ set RAM[2048] 0,
 set RAM[2049] 0,
 set RAM[14] 2048,
 set RAM[15] 1;
-repeat 30000 {
+repeat 300 {
   ticktock;
+}
+output;
+
+set PC 0,
+set RAM[2048] 70,
+set RAM[2049] 65,
+set RAM[2050] -635,
+set RAM[2051] -34,
+set RAM[2052] 1000,
+set RAM[14] 2048,
+set RAM[15] 4;
+repeat 500 {
+ ticktock;
 }
 output;
 
@@ -24,7 +37,7 @@ set RAM[2048] -1,
 set RAM[2049] 1,
 set RAM[14] 2048,
 set RAM[15] 2;
-repeat 30000 {
+repeat 300 {
   ticktock;
 }
 output;
