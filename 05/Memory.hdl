@@ -28,22 +28,21 @@ CHIP Memory {
 
     PARTS:
     //Do the calculations for RAM
-    //Are upper 2 bits 0?
-    Or(a=address[14], b=address[15], out=temp1);
-    Not(in=temp1, out=isRam);
-    AND(a=load, b=isRam, out=loadRam);
-    RAM16K(in=in, load=loadRam, address=address[0..14], out=outRam);    //Check amount of bits!
+    //Is upper bit 0?
+    Not(in=address[14], out=isRam);
+    And(a=load, b=isRam, out=loadRam);
+    RAM16K(in=in, load=loadRam, address=address[0..13], out=outRam);    //Check amount of bits!
 
     //Do the calculations for Screen
     //Are upper 2 bits 10?
-    Not(in=address[14], out=temp2);
-    And(a=temp2, b=address[15], out=isScreen);
-    AND(a=load, b=isScreen, out=loadScreen);
-    Screen(in=in, load=loadScreen, address=address[0..13], out=outScreen);
+    Not(in=address[13], out=temp2);
+    And(a=temp2, b=address[14], out=isScreen);
+    And(a=load, b=isScreen, out=loadScreen);
+    Screen(in=in, load=loadScreen, address=address[0..12], out=outScreen);
 
     //Do the calculations for RAM
-    //Are upper 2 bits 10?
-    AND(a=address[14], b=address[15], out=isKeyboard);
+    //Are upper 2 bits 1?
+    And(a=address[13], b=address[14], out=isKeyboard);
     Keyboard(out=outKeyboard);
     
     Or(a=isKeyboard, b=isRam, out=temp3);
