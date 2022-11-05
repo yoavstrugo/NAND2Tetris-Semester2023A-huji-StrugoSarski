@@ -36,3 +36,68 @@
 //   interactively by pressing and releasing some keyboard keys
 
 // Put your code here.
+
+// Blank the screen
+(BLANK)
+    @i // i refers to some mem. location.
+    M=0 // i=0
+(LOOP1)
+    @i
+    D=M // D=i
+    @8192 // screen size is 8192
+    D=D-A // D=i-100
+    @CHCKFORKEY1
+    D;JGT // If (i-100)>0 goto END
+    @i
+    D=M // D=i
+    @SCREEN
+    A=A+D
+    M=0 // Set the color to white
+    @i
+    M=M+1 // i=i+1
+    @LOOP1
+    0;JMP // Goto LOOP
+
+// Wait until key is pressed
+(CHCKFORKEY1)
+    // Check if a key has been pressed (keyboard word is not zero)
+    @KBD // Keyboard address
+    D=M // Put the keyboard 'output' into D
+    @CHCKFORKEY1
+    D;JEQ
+
+// Fill the screen
+(FILL)
+    @i // i refers to some mem. location.
+    M=0 // i=0
+(LOOP2)
+    @i
+    D=M // D=i
+    @8192 // screen size is 8192
+    D=D-A // D=i-100
+    @CHCKFORKEY2
+    D;JGT // If (i-100)>0 goto END
+    @i
+    D=M // D=i
+    @SCREEN
+    A=A+D
+    M=-1 // Set the color to black
+    @i
+    M=M+1 // i=i+1
+    @LOOP2
+    0;JMP // Goto LOOP
+
+// Wait until key is released
+(CHCKFORKEY2)
+    // Check if a key has been pressed (keyboard word is not zero)
+    @KBD // Keyboard address
+    D=M // Put the keyboard 'output' into D
+    @CHCKFORKEY2
+    D;JNE
+
+    @BLANK
+    0;JMP
+
+(END)
+    @END
+    0;JMP // Infinite loop
