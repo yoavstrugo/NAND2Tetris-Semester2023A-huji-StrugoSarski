@@ -39,4 +39,33 @@ CHIP CpuMul {
     
     PARTS:
     // Put your code here:
+    Mux16(a=instruction, b=ALUOut, sel=instruction[15], out=ARegisterIn);
+
+    Not(in=instruction[15], out=isAInstruction);
+    Or(a=instruction[5], b=isAInstruction, out=doLoadA);
+    
+    ARegister(in=ARegisterIn, load=doLoadA, out=ARegisterOut); // Register A
+
+    Mux16(a=ARegisterOut, b=inM, sel=instruction[12], out=RegisterAorM);
+
+    ExtendAlu(y=RegisterAorM, x=DRegisterOut, 
+        instruction=instruction[6..14],
+        out=ALUOut, zr=ALUzr, ng=ALUng);
+
+    // Only load D if it's a C-operation (=instruction[15])
+    And(a=instruction[4], b=instruction[15], out=doLoadD);
+    DRegister(in=ALUOut, load=doLoadD, out=DRegisterOut); // Register D
+
+    // WriteM Output
+    // If C-operation and dst is M
+    And(a=instruction[15], b=instruction[3], out=writeM); 
+
+    Or16(a=ARegisterOut, b=ARegisterOut, out[0..14]=addressM); // AddressM Output
+
+    Or16(a=ALUOut, b=ALUOut, out=outM); // OutM
+    
+    g(j1= instruction[2], j2= instruction[1], j3= instruction[0], zr= ALUzr, ng= ALUng, out= pcLoadCondition);
+    And(a=pcLoadCondition, b=instruction[15], out=pcLoad); // Condition is met and it's a C operation (meaning a jump is possible)
+    
+    PC(in=ARegisterOut, load=pcLoad, inc=true, reset=reset, out[0..14]=pc);
 }
