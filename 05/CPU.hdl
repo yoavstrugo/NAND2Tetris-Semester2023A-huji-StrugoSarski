@@ -59,7 +59,9 @@ CHIP CPU {
         no=instruction[6], 
         out=ALUOut, zr=ALUzr, ng=ALUng);
 
-    DRegister(in=ALUOut, load=instruction[4], out=DRegisterOut); // Register D
+    // Only load D if it's a C-operation (=instruction[15])
+    And(a=instruction[4], b=instruction[15], out=doLoadD);
+    DRegister(in=ALUOut, load=doLoadD, out=DRegisterOut); // Register D
 
     // WriteM Output
     // If C-operation and dst is M
