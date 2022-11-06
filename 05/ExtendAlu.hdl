@@ -23,5 +23,38 @@ CHIP ExtendAlu {
      OUT out[16], zr, ng;
      
      PARTS:
-     // Put your code here:
+     ALU(x=x, y=y,  zx=instruction[5], 
+                    nx=instruction[4], 
+                    zy=instruction[3], 
+                    ny=instruction[2], 
+                    f=instruction[1], 
+                    no=instruction[0], 
+                    out=regOut, 
+                    zr=regZr, 
+                    ng=regNg);
+     
+     ShiftRight(in = x, out = xShr);
+     ShiftRight(in = y, out = yShr);
+     ShiftLeft(in = x, out = xShl);
+     ShiftLeft(in = y, out = yShl);
+     
+     Mux16(a=yShr, b=yShl, sel=instruction[5], out=yShift);
+     Mux16(a=xShr, b=xShl, sel=instruction[5], out=xShift);
+     Mux16(a=yShift, b=xShift, sel=instruction[4], out=shiftOut);
+
+     // If the shift operation result in zero
+     Or16Way(in=shiftOut, out=shiftNotZero);
+     
+     Not(in=shiftNotZero, out=shiftZr);
+     
+     // Select the out
+     Mux16(a=shiftOut, b=regOut, sel=instruction[8], out=out);
+     // Select the zr flag
+     Mux(a=shiftZr, b=regZr, sel=instruction[8], out=zr);
+
+     Or16(a=shiftOut, b=shiftOut, out[15]=shiftOutNeg);
+     
+     // Select then ng flag
+     Mux(a=shiftOutNeg, b=regNg, sel=instruction[8], out=ng);
+     
 }
