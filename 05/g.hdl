@@ -1,0 +1,19 @@
+CHIP g {
+    IN  j1, j2, j3, zr, ng;
+    OUT out;
+
+    PARTS:
+        Not(in=zr, out=notZr);
+        Not(in=ng, out=notNg);
+        
+        And8Way(in[0] = true, in[1] = true, in[2] = j3, in[3] = notZr, in[4] = notNg, in[5] = true, in[6] = true, in[7] = true, out=JGT);
+        And8Way(in[0] = true, in[1] = j2, in[2] = true, in[3] = zr, in[4] = notNg, in[5] = true, in[6] = true, in[7] = true, out=JEQ);
+        And8Way(in[0] = j1, in[1] = true, in[2] = true, in[3] = notZr, in[4] = ng, in[5] = true, in[6] = true, in[7] = true, out=JLT);
+
+        Or(a=JGT, b=JEQ, out=JGE);
+        Or(a=JGT, b=JLT, out=JNE);
+        Or(a=JLT, b=JEQ, out=JLE);
+        Or(a=JGE, b=JLE, out=JMP);
+
+        Or8Way(in[0] = JGT, in[1] = JEQ, in[2] = JGE, in[3] = JLT, in[4] = JNE, in[5] = JLE, in[6] = JMP, in[7] = false, out = out);
+}
