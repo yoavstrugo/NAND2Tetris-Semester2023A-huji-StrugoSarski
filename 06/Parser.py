@@ -78,7 +78,8 @@ class Parser:
             str: the dest mnemonic in the current C-command. Should be called 
             only when commandType() is "C_COMMAND".
         """
-        return self.cur_line.replace('=', ';').split(';')[0]
+        dst = self.cur_line.replace('=', ';').split(';')[0]
+        return dst if dst != '' else 'null'
 
     def comp(self) -> str:
         """
