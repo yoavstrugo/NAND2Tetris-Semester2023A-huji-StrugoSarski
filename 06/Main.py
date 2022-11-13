@@ -45,6 +45,16 @@ def assemble_file(
             continue
         parser.advance()
 
+    # Second pass
+    parser.cur_index = 0 # Reset the parser
+    while parser.has_more_commands():
+        comm_type = parser.command_type()
+        if comm_type == 'A_COMMAND':
+            pass
+        elif comm_type == 'C_COMMAND':
+            pass
+
+
 
 if "__main__" == __name__:
     # Parses the input path and calls assemble_file on each input file.
