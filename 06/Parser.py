@@ -29,6 +29,9 @@ class Parser:
         raw_lines = [line for line in raw_lines if line[0:1] != '//']
         self.lines = [line.split('//')[0] for line in raw_lines]
         self.lines = [line for line in self.lines if len(line) > 0]
+        self.reset()
+
+    def reset(self):
         self.cur_line = self.lines[0]
         self.cur_index = 0
 
@@ -38,15 +41,16 @@ class Parser:
         Returns:
             bool: True if there are more commands, False otherwise.
         """
-        return self.cur_index+1 < len(self.lines)
+        return self.cur_index < len(self.lines)
 
     def advance(self) -> None:
         """Reads the next command from the input and makes it the current command.
         Should be called only if has_more_commands() is true.
         """
         # Your code goes here!
-        self.cur_line = self.lines[self.cur_index]
         self.cur_index += 1
+        if self.has_more_commands():
+            self.cur_line = self.lines[self.cur_index]
 
     def command_type(self) -> str:
         """
@@ -78,8 +82,11 @@ class Parser:
             str: the dest mnemonic in the current C-command. Should be called 
             only when commandType() is "C_COMMAND".
         """
-        dst = self.cur_line.replace('=', ';').split(';')[0]
-        return dst if dst != '' else 'null'
+        if '=' in self.cur_line:
+            # the command has a 'DST' field
+            return self.cur_line.split('=')[0]
+
+        return 'null'
 
     def comp(self) -> str:
         """
@@ -88,7 +95,10 @@ class Parser:
             only when commandType() is "C_COMMAND".
         """
         # Your code goes here!
-        return self.cur_line.replace('=', ';').split(';')[1]
+        comp = self.cur_line
+        if '=' in comp:
+            comp = comp.split('=')[1] # Remove the DST part
+        return comp.split(';')[0] # If is has a JMP part it will be removed
 
     def jump(self) -> str:
         """
@@ -97,8 +107,10 @@ class Parser:
             only when commandType() is "C_COMMAND".
         """
         # Your code goes here!
-        splitted = self.cur_line.replace('=', ';').split(';')
-        if len(splitted) < 2:
-            return None
-        return splitted[2]
+        if ';' in self.cur_line:
+            return self.cur_line.split(';')[1]
 
+        return 'null'
+
+
+# (DST=)?COMP(;JMP)?;
