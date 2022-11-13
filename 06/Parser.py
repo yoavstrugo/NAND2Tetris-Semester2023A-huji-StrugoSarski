@@ -28,6 +28,7 @@ class Parser:
         raw_lines = [line.replace('\t', '') for line in raw_lines]
         raw_lines = [line for line in raw_lines if line[0:1] != '//']
         self.lines = [line.split('//')[0] for line in raw_lines]
+        self.lines = [line for line in self.lines if len(line) > 0]
         self.cur_line = self.lines[0]
         self.cur_index = 0
 

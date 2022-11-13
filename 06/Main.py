@@ -36,13 +36,11 @@ def assemble_file(
         if comm_type == 'L_COMMAND':
             sym_table.add_entry(parser.symbol(), real_comm_index)
             n += 1
-            continue
         if comm_type == 'A_COMMAND':
             sym = parser.symbol()
             if not sym_table.contains(sym):
                 sym_table.add_entry(sym, n)
                 n += 1
-            continue
         parser.advance()
 
 
