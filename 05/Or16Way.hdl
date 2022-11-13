@@ -1,3 +1,7 @@
+/*
+* Preforms or operation on 16 bits:
+* out = in[0] | in[1] | ...
+*/
 CHIP Or16Way {
     IN in[16];
     OUT out;

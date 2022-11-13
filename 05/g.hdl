@@ -1,3 +1,10 @@
+/*
+* This chip is a helper chip for the CPU and CpuMul 
+* chips. As described in the lectured, the g chip checks
+* if the jumping condition is met, and sets:
+* out = 1 | if the jumping condition is met
+* out = 0 | if jumping conditon is not met
+*/
 CHIP g {
     IN  j1, j2, j3, zr, ng;
     OUT out;
@@ -6,10 +13,12 @@ CHIP g {
         Not(in=zr, out=notZr);
         Not(in=ng, out=notNg);
         
+        // Basic conditions: Greater then, Less then, Equal to
         And8Way(in[0] = true, in[1] = true, in[2] = j3, in[3] = notZr, in[4] = notNg, in[5] = true, in[6] = true, in[7] = true, out=JGT);
         And8Way(in[0] = true, in[1] = j2, in[2] = true, in[3] = zr, in[4] = notNg, in[5] = true, in[6] = true, in[7] = true, out=JEQ);
         And8Way(in[0] = j1, in[1] = true, in[2] = true, in[3] = notZr, in[4] = ng, in[5] = true, in[6] = true, in[7] = true, out=JLT);
-
+ 
+        // Create the "more complex" conditions from the basic ones
         Or(a=JGT, b=JEQ, out=JGE);
         Or(a=JGT, b=JLT, out=JNE);
         Or(a=JLT, b=JEQ, out=JLE);
