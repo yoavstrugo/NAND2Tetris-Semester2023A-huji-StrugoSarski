@@ -1,0 +1,47 @@
+
+(eq)
+@sp
+A=A-1
+D=M
+A=A-1
+D=D-M
+@neg1
+D; JEQ
+@pos0
+D; JNE
+
+(lt)
+@sp
+A=A-1
+D=M
+A=A-1
+D=D-M
+@neg1
+D; JLT
+@pos0
+D; JGT
+
+(eq)
+@sp
+A=A-1
+D=M
+A=A-1
+D=D-M
+@pos0
+D; JEQ
+@neg1
+D; JNE
+
+(neg1)
+D=-1
+@END_EQ_LT_GT
+0; JMP
+(pos0)
+D=0
+@END_EQ_LT_GT
+0; JMP
+
+(END_EQ_LT_GT)
+@13
+A=M
+0; JMP
