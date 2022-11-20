@@ -20,11 +20,34 @@ class CodeWriter:
         # Your code goes here!
         # Note that you can write to output_stream like so:
         # output_stream.write("Hello world! \n")
-        output_stream.write("(eq)\n@sp\nA=A-1\nD=M\nA=A-1\nD=D-M\n@neg1\nD; JEQ\n@pos0\nD; JNE\n("
-                            "lt)\n@sp\nA=A-1\nD=M\nA=A-1\nD=D-M\n@neg1\nD; JLT\n@pos0\nD; JGT\n("
-                            "eq)\n@sp\nA=A-1\nD=M\nA=A-1\nD=D-M\n@pos0\nD; JEQ\n@neg1\nD; JNE\n("
-                            "neg1)\nD=-1\n@END_EQ_LT_GT\n0; JMP\n(pos0)\nD=0\n@END_EQ_LT_GT\n0; JMP\n("
-                            "END_EQ_LT_GT)\n@13\nA=M\n0; JMP\n")
+        output_stream.write("(eq) \
+                            \r\t@SP \
+                            \r\tA=M \
+                            \r\tA=A-1 \
+                            \r\tD=M \
+                            \r\tA=A-1 \
+                            \r\tD=D-M \
+                            \r\t@neg1 \
+                            \r\tD; JEQ \
+                            \r\t@pos0 \
+                            \r\tD; JNE\n")
+
+        output_stream.write("(lt) \
+                             \r\t@SP \
+                             \r\tA=A-1 \
+                             \r\tD=M \
+                             \r\tA=A-1 \
+                             \r\tD=D-M \
+                             \r\t@neg1 \
+                             \r\tD; JLT \
+                             \r\t@pos0 \
+                             \r\tD; \
+                             \r\tJGT\n")
+
+        output_stream.write("(eq)\n@SP\nA=A-1\nD=M\nA=A-1\nD=D-M\n@pos0\nD; JEQ\n@neg1\nD; JNE\n( \
+        neg1)\nD=-1\n@END_EQ_LT_GT\n0; JMP\n(pos0)\nD=0\n@END_EQ_LT_GT\n0; JMP\n(\
+        END_EQ_LT_GT)\n@13\nA=M\n0; JMP\n")
+        self.out = output_stream
         self.file_name = ""
         self.cur_label_index = 0
 
@@ -46,7 +69,7 @@ class CodeWriter:
         # the function "translate_file" in Main.py using python's os library,
         # For example, using code similar to:
         # input_filename, input_extension = os.path.splitext(os.path.basename(input_file.name))
-        pass
+        self.file_name = filename
 
     def write_arithmetic(self, command: str) -> None:
         """Writes assembly code that is the translation of the given 
@@ -60,14 +83,31 @@ class CodeWriter:
         binary_commands_dic = {"add": "+", "sub": "-", "and": "&", "or": "|"}
         unary_commands_dic = {"neg": "-", "not": "!"}
 
+        self.out.write(f'//{command}\n')  # Debugging
         if command in ["add", "sub", "and", "or"]:
-            cmd = binary_commands_dic[command]
-            return f"@sp\nA=A-1\nD=M\nA=A-1\nM=M{cmd}D\n@sp\nM=M-1\n"
+            op = binary_commands_dic[command]
+            self.out.write(
+                f'@SP \
+                  \r\tM=M-1 // Point to the top of the stack (y) \
+                  \r\tA=M // A points to the next slot \
+                  \r\tD=M // D is one of the values (y) \
+                  \r\tA=A-1 // A points to next value (x) \
+                  \r\tM=M{op}D // Preform the operation, x op y')
         if command in ["neg", "not"]:
             cmd = unary_commands_dic[command]
-            return f"@sp\nA=A-1\nM={cmd}M\n"
+            self.out.write(f"@SP \
+                             \r\rM=M-1 \
+                             \r\rA=M \
+                             \r\rM={cmd}M\n")
         if command in ['eq', 'lt', 'gt']:
-            return f"@label_{self.cur_label_index}_{command}\nD=A\n@13\nM=D\n@{command}\n0;JMP\n(@label_{self.cur_label_index}_{command})\n"
+            self.out.write(
+                f"@label_{self.cur_label_index}_{command} \
+                  \r\tD=A \
+                  \r\t@R13 \
+                  \r\tM=D \
+                  \r\t@{command} \
+                  \r\t0;JMP \
+                  \r\t(@label_{self.cur_label_index}_{command})\n")
 
     def write_push_pop(self, command: str, segment: str, index: int) -> None:
         """Writes assembly code that is the translation of the given 
@@ -83,37 +123,246 @@ class CodeWriter:
         # be translated to the assembly symbol "Xxx.i". In the subsequent
         # assembly process, the Hack assembler will allocate these symbolic
         # variables to the RAM, starting at address 16.
-        if segment == 'static':
-            if command == "C_PUSH":
-                return f"@{self.file_name}.{index}\nA=M\nD=M\n@sp\nA=M\nM=D\n@sp\nM=M+1\n"
-            if command == "C_POP":
-                return f"@{self.file_name}.{index}\nA=M\nD=M\n@sp\nA=M-1\nM=D\n@sp\nM=M-1\n"
+        self.out.write(f'//{command} {segment} {index}\n')  # Debugging
 
         if segment == 'constant':
             if command == "C_PUSH":
-                return f"@{index}\nD=A\n@sp\nA=M\nM=D\n@sp\nM=M+1\n"
+                self.out.write(f"@{index} \n\
+                                \r\tD=A \
+                                \r\t@SP \
+                                \r\tA=M \
+                                \r\tM=D \
+                                \r\t@SP \
+                                \r\tM=M+1\n")
+        elif segment in ['temp', 'pointer']:
+            # temp start at 5
+            base = '5' if segment == 'temp' else 'THIS'
+            if command == 'C_PUSH':
+                self.out.write(
+                    f'@{base} \
+                        \r\tD=A // D now has the base \
+                        \r\t@{index} // index \
+                        \r\tA=A+D // A now has the value\'s address \
+                        \r\tD=M // D now has the value it self \
+                        \n\
+                        \r\t@SP \
+                        \r\tA=M // A has the address of the next slot in the stack \
+                        \r\tM=D // Put the value into the next stack\'s slot \
+                        \r\t@SP \
+                        \r\tM=M+1 // Increase SP by 1\n')
+            elif command == 'C_POP':
+                self.out.write(
+                    f'@SP \
+                        \r\tM=M-1 // Decrease 1 from SP \
+                        \r\tA=M // Get the address of the stack item \
+                        \r\tD=M // The value is now in D \
+                        \r\t@R13 \
+                        \r\tM=D // Save the value in R1 \
+                        \n\
+                        \r\t@{base} \
+                        \r\tD=A // Address of local \
+                        \r\t@{index} // Offset\
+                        \r\tA=D+A // Actual address\
+                        \r\tD=A // D is the address\
+                        \r\t@R14\
+                        \r\tM=D // address is in R2 \
+                        \n\
+                        \r\t@R13\
+                        \r\tD=M // Value is in D\
+                        \r\t@R14 // Address is in M\
+                        \r\tA=M \
+                        \r\tM=D\n')
+        else:
+            label = ''
+            if segment == 'static':
+                label = f'{self.file_name}.{index}'
+            elif segment in ['this', 'that']:
+                label = segment.upper()
+            elif segment in ['local', 'argument']:
+                label = 'LCL' if segment == 'local' else 'ARG'
+            else:
+                print(f'Something is wrong here {command} {segment} {index}')
 
-        if segment == 'pointer':
-            seg_dic = {0: "THIS", 1: "THAT"}
-            seg = seg_dic[index]
-            if command == "C_PUSH":
-                return f"@{seg}\nA=M\nD=M\n@sp\nA=M\nM=D\n@sp\nM=M+1\n"
-            if command == "C_POP":
-                return f"@{seg}\nA=M\nD=M\n@sp\nA=M-1\nM=D\n@sp\nM=M-1\n"
+            if command == 'C_PUSH':
+                self.out.write(
+                    f'@{label} \
+                        \r\tD=M // D now has the base \
+                        \r\t@{index} // index \
+                        \r\tA=A+D // A now has the value\'s address \
+                        \r\tD=M // D now has the value it self \
+                        \n\
+                        \r\t@SP \
+                        \r\tA=M // A has the address of the next slot in the stack \
+                        \r\tM=D // Put the value into the next stack\'s slot \
+                        \r\t@SP \
+                        \r\tM=M+1 // Increase SP by 1\n')
+            elif command == 'C_POP':
+                self.out.write(
+                    f'@SP \
+                        \r\tM=M-1 // Decrease 1 from SP \
+                        \r\tA=M // Get the address of the stack item \
+                        \r\tD=M // The value is now in D \
+                        \r\t@R13 \
+                        \r\tM=D // Save the value in R1 \
+                        \n\
+                        \r\t@{label} \
+                        \r\tD=M // Address of local \
+                        \r\t@{index} // Offset\
+                        \r\tA=D+A // Actual address\
+                        \r\tD=A // D is the address\
+                        \r\t@R14\
+                        \r\tM=D // address is in R2 \
+                        \n\
+                        \r\t@R13\
+                        \r\tD=M // Value is in D\
+                        \r\t@R14 // Address is in M\
+                        \r\tA=M \
+                        \r\tM=D\n')
 
-        if segment in ['local', 'argument']:
-            seg_dic = {'local': 'LCL', 'argument': 'ARG'}
-            seg = seg_dic[segment]
-            if command == "C_PUSH":
-                return f"@{seg}\nD=M\n@{index}\nA=D+A\nD=M\n@sp\nA=M\nM=D\n@sp\nM=M+1\n"
-            if command == "C_POP":
-                return f"@{seg}\nD=M\n@{index}\nA=D+A\nD=M\n@sp\nA=M-1\nM=D\n@sp\nM=M-1\n"
+        # if segment == 'static':
+        #     if command == "C_PUSH":
+        #         self.out.write(
+        #             f"@{self.file_name}.{index} \
+        #                 \r\tA=M \
+        #                 \r\tD=M \
+        #                 \r\t@SP \
+        #                 \r\tA=M \
+        #                 \r\tM=D \
+        #                 \r\t@SP \
+        #                 \r\tM=M+1\n")
+        #     if command == "C_POP":
+        #         self.out.write(
+        #             f"@{self.file_name}.{index} \
+        #                 \r\tA=M \
+        #                 \r\tD=M \
+        #                 \r\t@SP \
+        #                 \r\tA=M-1 \
+        #                 \r\tM=D \
+        #                 \r\t@SP \
+        #                 \r\tM=M-1\n")
 
-        if segment == 'temp':
-            if command == "C_PUSH":
-                return f"@5\nD=M\n@{index}\nA=D+A\nD=M\n@sp\nA=M\nM=D\n@sp\nM=M+1\n"
-            if command == "C_POP":
-                return f"@5\nD=M\n@{index}\nA=D+A\nD=M\n@sp\nA=M-1\nM=D\n@sp\nM=M-1\n"
+        # if segment == 'constant':
+        #     if command == "C_PUSH":
+        #         self.out.write(f"@{index} \
+        #                         \r\tD=A \
+        #                         \r\t@SP \
+        #                         \r\tA=M \
+        #                         \r\tM=D \
+        #                         \r\t@SP \
+        #                         \r\tM=M+1\n")
+
+        # if segment == 'pointer':
+        #     seg_dic = {0: "THIS", 1: "THAT"}
+        #     seg = seg_dic[index]
+        #     if command == "C_PUSH":
+        #         self.out.write(
+        #             f"@{seg} \
+        #               \r\tA=M \
+        #               \r\tD=M \
+        #               \r\t@SP \
+        #               \r\tA=M \
+        #               \r\tM=D \
+        #               \r\t@SP \
+        #               \r\tM=M+1\n")
+        #     if command == "C_POP":
+        #         self.out.write(
+        #             f"@{seg} \
+        #               \r\tA=M \
+        #               \r\tD=M \
+        #               \r\t@SP \
+        #               \r\tA=M-1 \
+        #               \r\tM=D \
+        #               \r\t@SP \
+        #               \r\tM=M-1\n")
+
+        # if segment in ['local', 'argument']:
+        #     seg_dic = {'local': 'LCL', 'argument': 'ARG'}
+        #     seg = seg_dic[segment]
+            # if command == "C_PUSH":
+            #     self.out.write(
+            #         f"@{seg} \
+            #             \r\tD=M \
+            #             \r\t@{index} \
+            #             \r\tA=D+A \
+            #             \r\tD=M \
+            #             \r\t@SP \
+            #             \r\tA=M \
+            #             \r\tM=D \
+            #             \r\t@SP \
+            #             \r\tM=M+1\n")
+            # if command == "C_POP":
+            #     self.out.write(
+            #         f"@{seg} \
+            #             \r\tD=M \
+            #             \r\t@{index} \
+            #             \r\tA=D+A \
+            #             \r\tD=M \
+            #             \r\t@SP \
+            #             \r\tA=M-1 \
+            #             \r\tM=D \
+            #             \r\t@SP \
+            #             \r\tM=M-1\n")
+            # if command == 'C_PUSH':
+            #     self.out.write(
+            #         f'@{seg} \
+            #           \r\tD=M // D now has the base \
+            #           \r\t@{index} // index \
+            #           \r\tA=A+D // A now has the value\'s address \
+            #           \r\tD=M // D now has the value it self \
+            #           \n\
+            #           \r\t@SP \
+            #           \r\tA=M // A has the address of the next slot in the stack \
+            #           \r\tM=D // Put the value into the next stack\'s slot \
+            #           \r\t@SP \
+            #           \r\tM=M+1 // Increase SP by 1')
+            # if command == 'C_POP':
+            #     self.out.write(
+            #         f'@SP \
+            #           \r\tM=M-1 // Decrease 1 from SP \
+            #           \r\tA=M // Get the address of the stack item \
+            #           \r\tD=M // The value is now in D \
+            #           \r\t@R13 \
+            #           \r\tM=D // Save the value in R1 \
+            #           \n\
+            #           \r\t@{seg} \
+            #           \r\tD=M // Address of local \
+            #           \r\t@{index} // Offset\
+            #           \r\tA=D+A // Actual address\
+            #           \r\tD=A // D is the address\
+            #           \r\t@R14\
+            #           \r\tM=D // address is in R2 \
+            #           \n\
+            #           \r\t@R13\
+            #           \r\tD=M // Value is in D\
+            #           \r\t@R14 // Address is in M\
+            #           \r\tA=M \
+            #           \r\tM=D\n')
+
+        # if segment == 'temp':
+        #     if command == "C_PUSH":
+        #         self.out.write(
+        #             f"@5 \
+        #                 \r\tD=M \
+        #                 \r\t@{index} \
+        #                 \r\tA=D+A \
+        #                 \r\tD=M \
+        #                 \r\t@SP \
+        #                 \r\tA=M \
+        #                 \r\tM=D \
+        #                 \r\t@SP \
+        #                 \r\tM=M+1\n")
+        #     if command == "C_POP":
+        #         self.out.write(
+        #             f"@5 \
+        #                 \r\tD=M \
+        #                 \r\t@{index} \
+        #                 \r\tA=D+A \
+        #                 \r\tD=M \
+        #                 \r\t@SP \
+        #                 \r\tA=M-1 \
+        #                 \r\tM=D \
+        #                 \r\t@SP \
+        #                 \r\tM=M-1 \n")
 
     def write_label(self, label: str) -> None:
         """Writes assembly code that affects the label command. 
