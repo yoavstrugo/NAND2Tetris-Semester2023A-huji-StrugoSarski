@@ -118,6 +118,7 @@ class Parser:
         # Your code goes here!
         self.line_selector += 1
 
+
     def command_type(self) -> str:
         """
         Returns:

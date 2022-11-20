@@ -42,6 +42,7 @@ def translate_file(
             pass
 
         parser.advance()
+    code_writer.end_file()
 
 
 if "__main__" == __name__:
