@@ -22,9 +22,26 @@ def translate_file(
     """
     # Your code goes here!
     # It might be good to start with something like:
-    # parser = Parser(input_file)
-    # code_writer = CodeWriter(output_file)
-    pass
+    parser = Parser(input_file)
+    code_writer = CodeWriter(output_file)
+
+    input_filename, input_extension = os.path.splitext(os.path.basename(input_file.name))
+    code_writer.set_file_name(input_filename)
+
+    while parser.has_more_commands():
+        command = parser.command_type()
+        arg1 = parser.arg1()
+        arg2 = parser.arg2()
+
+        if command == 'C_ARITHMETIC':
+            code_writer.write_arithmetic(arg1)
+        elif command in ['C_PUSH', 'C_POP']:
+            code_writer.write_push_pop(command, arg1, arg2)
+        else:
+            # Chapter 8...
+            pass
+
+        parser.advance()
 
 
 if "__main__" == __name__:

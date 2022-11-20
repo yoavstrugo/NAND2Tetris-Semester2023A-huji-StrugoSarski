@@ -70,7 +70,7 @@ class Parser:
     class VMLine:
         command: str
         arg1: str
-        arg2: str
+        arg2: int
 
     @staticmethod
     def parse_line(line : str) -> Tuple[str, str, str]:
@@ -79,7 +79,7 @@ class Parser:
         if command == 'C_ARITHMETIC':
             return Parser.VMLine(command=command, arg1=splitted_line[0], arg2=None)
         else:
-            return Parser.VMLine(command=command, arg1=splitted_line[1], arg2=splitted_line[2])
+            return Parser.VMLine(command=command, arg1=splitted_line[1], arg2=int(splitted_line[2]))
 
     def __init__(self, input_file: TextIO) -> None:
         """Gets ready to parse the input file.
@@ -101,8 +101,6 @@ class Parser:
 
         self.line_selector = 0
 
-        print(self.parsed_lines)
-
     def has_more_commands(self) -> bool:
         """Are there more commands in the input?
 
@@ -110,7 +108,7 @@ class Parser:
             bool: True if there are more commands, False otherwise.
         """
         # Your code goes here!
-        return self.line_selector < len(self.lines)
+        return self.line_selector < len(self.parsed_lines)
 
     def advance(self) -> None:
         """Reads the next command from the input and makes it the current 
