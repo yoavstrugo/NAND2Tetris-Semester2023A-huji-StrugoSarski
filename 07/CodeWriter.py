@@ -36,29 +36,51 @@ class CodeWriter:
 
         output_stream.write("(lt) \
                                      \r\t@SP \
+                                     \r\tA=M \
                                      \r\tA=A-1 \
                                      \r\tD=M \
                                      \r\tA=A-1 \
-                                     \r\tD=D-M \
+                                     \r\tD=M-D \
                                      \r\t@neg1 \
                                      \r\tD; JLT \
                                      \r\t@pos0 \
-                                     \r\tD; JGT\n")
+                                     \r\tD; JMP\n")
 
         output_stream.write("(gt) \
                                      \r\t@SP \
+                                     \r\tA=M \
                                      \r\tA=A-1 \
                                      \r\tD=M \
                                      \r\tA=A-1 \
-                                     \r\tD=D-M \
+                                     \r\tD=M-D \
                                      \r\t@neg1 \
                                      \r\tD; JGT \
                                      \r\t@pos0 \
-                                     \r\tD; JLT\n")
+                                     \r\tD; JMP\n")
 
         output_stream.write(
-            "(neg1)\r\tD=-1\r\t@END_EQ_LT_GT\r\t0; JMP\n(pos0)\r\tD=0\r\t@END_EQ_LT_GT\r\t0; JMP\n(END_EQ_LT_GT)\r\t@13\r\tA=M\r\t0; JMP\n")
+                '(neg1) \
+                \r\tD=-1 \
+                \r\t@END_EQ_LT_GT \
+                \r\t0; JMP \
+                \n(pos0) \
+                \r\tD=0 \
+                \r\t@END_EQ_LT_GT \
+                \r\t0; JMP\n')
+
+        output_stream.write(
+                '(END_EQ_LT_GT) \
+                \r\t@SP \
+                \r\tM=M-1 // Decrease SP by 1\
+                \r\tA=M \
+                \r\tA=A-1 \
+                \r\tM=D // Push D to the stack \
+                \r\t@R13 \
+                \r\tA=M \
+                \r\t0; JMP\n')
+
         output_stream.write("(codeStart)\n")
+
         self.out = output_stream
         self.file_name = ""
         self.cur_label_index = 0
@@ -108,9 +130,9 @@ class CodeWriter:
         if command in ["neg", "not"]:
             cmd = unary_commands_dic[command]
             self.out.write(f"@SP \
-                             \r\rM=M-1 \
-                             \r\rA=M \
-                             \r\rM={cmd}M\n")
+                             \r\tA=M \
+                             \r\tA=A-1 \
+                             \r\tM={cmd}M\n")
         if command in ['eq', 'lt', 'gt']:
             self.out.write(
                 f"@label_{self.cur_label_index}_{command} \
@@ -120,7 +142,7 @@ class CodeWriter:
                   \r\t@{command} \
                   \r\t0;JMP \
                   \r\t(label_{self.cur_label_index}_{command})\n")
-            self.cur_label_index+=1
+            self.cur_label_index += 1
 
     def write_push_pop(self, command: str, segment: str, index: int) -> None:
         """Writes assembly code that is the translation of the given 
@@ -140,7 +162,7 @@ class CodeWriter:
 
         if segment == 'constant':
             if command == "C_PUSH":
-                self.out.write(f"@{index} \n\
+                self.out.write(f"@{index} \
                                 \r\tD=A \
                                 \r\t@SP \
                                 \r\tA=M \
