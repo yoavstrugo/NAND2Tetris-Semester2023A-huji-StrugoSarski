@@ -59,7 +59,7 @@ class CodeWriter:
                                      \r\tD; JMP\n")
 
         output_stream.write(
-                '(neg1) \
+            '(neg1) \
                 \r\tD=-1 \
                 \r\t@END_EQ_LT_GT \
                 \r\t0; JMP \
@@ -69,7 +69,7 @@ class CodeWriter:
                 \r\t0; JMP\n')
 
         output_stream.write(
-                '(END_EQ_LT_GT) \
+            '(END_EQ_LT_GT) \
                 \r\t@SP \
                 \r\tM=M-1 // Decrease SP by 1\
                 \r\tA=M \
@@ -84,6 +84,7 @@ class CodeWriter:
         self.out = output_stream
         self.file_name = ""
         self.cur_label_index = 0
+        self.label_dict = {}
 
     def set_file_name(self, filename: str) -> None:
         """Informs the code writer that the translation of a new VM file is 
@@ -254,151 +255,6 @@ class CodeWriter:
                         \r\tA=M \
                         \r\tM=D\n')
 
-        # if segment == 'static':
-        #     if command == "C_PUSH":
-        #         self.out.write(
-        #             f"@{self.file_name}.{index} \
-        #                 \r\tA=M \
-        #                 \r\tD=M \
-        #                 \r\t@SP \
-        #                 \r\tA=M \
-        #                 \r\tM=D \
-        #                 \r\t@SP \
-        #                 \r\tM=M+1\n")
-        #     if command == "C_POP":
-        #         self.out.write(
-        #             f"@{self.file_name}.{index} \
-        #                 \r\tA=M \
-        #                 \r\tD=M \
-        #                 \r\t@SP \
-        #                 \r\tA=M-1 \
-        #                 \r\tM=D \
-        #                 \r\t@SP \
-        #                 \r\tM=M-1\n")
-
-        # if segment == 'constant':
-        #     if command == "C_PUSH":
-        #         self.out.write(f"@{index} \
-        #                         \r\tD=A \
-        #                         \r\t@SP \
-        #                         \r\tA=M \
-        #                         \r\tM=D \
-        #                         \r\t@SP \
-        #                         \r\tM=M+1\n")
-
-        # if segment == 'pointer':
-        #     seg_dic = {0: "THIS", 1: "THAT"}
-        #     seg = seg_dic[index]
-        #     if command == "C_PUSH":
-        #         self.out.write(
-        #             f"@{seg} \
-        #               \r\tA=M \
-        #               \r\tD=M \
-        #               \r\t@SP \
-        #               \r\tA=M \
-        #               \r\tM=D \
-        #               \r\t@SP \
-        #               \r\tM=M+1\n")
-        #     if command == "C_POP":
-        #         self.out.write(
-        #             f"@{seg} \
-        #               \r\tA=M \
-        #               \r\tD=M \
-        #               \r\t@SP \
-        #               \r\tA=M-1 \
-        #               \r\tM=D \
-        #               \r\t@SP \
-        #               \r\tM=M-1\n")
-
-        # if segment in ['local', 'argument']:
-        #     seg_dic = {'local': 'LCL', 'argument': 'ARG'}
-        #     seg = seg_dic[segment]
-        # if command == "C_PUSH":
-        #     self.out.write(
-        #         f"@{seg} \
-        #             \r\tD=M \
-        #             \r\t@{index} \
-        #             \r\tA=D+A \
-        #             \r\tD=M \
-        #             \r\t@SP \
-        #             \r\tA=M \
-        #             \r\tM=D \
-        #             \r\t@SP \
-        #             \r\tM=M+1\n")
-        # if command == "C_POP":
-        #     self.out.write(
-        #         f"@{seg} \
-        #             \r\tD=M \
-        #             \r\t@{index} \
-        #             \r\tA=D+A \
-        #             \r\tD=M \
-        #             \r\t@SP \
-        #             \r\tA=M-1 \
-        #             \r\tM=D \
-        #             \r\t@SP \
-        #             \r\tM=M-1\n")
-        # if command == 'C_PUSH':
-        #     self.out.write(
-        #         f'@{seg} \
-        #           \r\tD=M // D now has the base \
-        #           \r\t@{index} // index \
-        #           \r\tA=A+D // A now has the value\'s address \
-        #           \r\tD=M // D now has the value it self \
-        #           \n\
-        #           \r\t@SP \
-        #           \r\tA=M // A has the address of the next slot in the stack \
-        #           \r\tM=D // Put the value into the next stack\'s slot \
-        #           \r\t@SP \
-        #           \r\tM=M+1 // Increase SP by 1')
-        # if command == 'C_POP':
-        #     self.out.write(
-        #         f'@SP \
-        #           \r\tM=M-1 // Decrease 1 from SP \
-        #           \r\tA=M // Get the address of the stack item \
-        #           \r\tD=M // The value is now in D \
-        #           \r\t@R13 \
-        #           \r\tM=D // Save the value in R1 \
-        #           \n\
-        #           \r\t@{seg} \
-        #           \r\tD=M // Address of local \
-        #           \r\t@{index} // Offset\
-        #           \r\tA=D+A // Actual address\
-        #           \r\tD=A // D is the address\
-        #           \r\t@R14\
-        #           \r\tM=D // address is in R2 \
-        #           \n\
-        #           \r\t@R13\
-        #           \r\tD=M // Value is in D\
-        #           \r\t@R14 // Address is in M\
-        #           \r\tA=M \
-        #           \r\tM=D\n')
-
-        # if segment == 'temp':
-        #     if command == "C_PUSH":
-        #         self.out.write(
-        #             f"@5 \
-        #                 \r\tD=M \
-        #                 \r\t@{index} \
-        #                 \r\tA=D+A \
-        #                 \r\tD=M \
-        #                 \r\t@SP \
-        #                 \r\tA=M \
-        #                 \r\tM=D \
-        #                 \r\t@SP \
-        #                 \r\tM=M+1\n")
-        #     if command == "C_POP":
-        #         self.out.write(
-        #             f"@5 \
-        #                 \r\tD=M \
-        #                 \r\t@{index} \
-        #                 \r\tA=D+A \
-        #                 \r\tD=M \
-        #                 \r\t@SP \
-        #                 \r\tA=M-1 \
-        #                 \r\tM=D \
-        #                 \r\t@SP \
-        #                 \r\tM=M-1 \n")
-
     def end_file(self):
         self.out.write("(finalLoop) \
                             \r\t@finalLoop \
@@ -417,7 +273,8 @@ class CodeWriter:
         """
         # This is irrelevant for project 7,
         # you will implement this in project 8!
-        pass
+        label_name_in_file = f'{self.file_name}.{self.cur_function_name}${label}'
+        self.out.write(f'({label_name_in_file})')
 
     def write_goto(self, label: str) -> None:
         """Writes assembly code that affects the goto command.
@@ -427,7 +284,8 @@ class CodeWriter:
         """
         # This is irrelevant for project 7,
         # you will implement this in project 8!
-        pass
+        label_name_in_file = f'{self.file_name}${label}'
+        self.out.write(f'0; JMP {label_name_in_file}')
 
     def write_if(self, label: str) -> None:
         """Writes assembly code that affects the if-goto command. 
@@ -437,7 +295,10 @@ class CodeWriter:
         """
         # This is irrelevant for project 7,
         # you will implement this in project 8!
-        pass
+        self.out.write("@SP \
+                        \rM=M-1 \
+                        \rA=M \
+                        \rA; JNE\n")
 
     def write_function(self, function_name: str, n_vars: int) -> None:
         """Writes assembly code that affects the function command. 
@@ -457,7 +318,15 @@ class CodeWriter:
         # (function_name)       // injects a function entry label into the code
         # repeat n_vars times:  // n_vars = number of local variables
         #   push constant 0     // initializes the local variables to 0
-        pass
+        self.write(f'{function_name}\n')
+        for i in range(n_vars):
+            self.out.write(f"@0 \
+                            \r\tD=A \
+                            \r\t@SP \
+                            \r\tA=M \
+                            \r\tM=D \
+                            \r\t@SP \
+                            \r\tM=M+1\n")
 
     def write_call(self, function_name: str, n_args: int) -> None:
         """Writes assembly code that affects the call command. 
