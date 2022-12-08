@@ -37,6 +37,18 @@ def translate_file(
             code_writer.write_arithmetic(arg1)
         elif command in ['C_PUSH', 'C_POP']:
             code_writer.write_push_pop(command, arg1, arg2)
+        elif command == 'C_LABEL':
+            code_writer.write_label(arg1)
+        elif command == 'C_GOTO':
+            code_writer.write_goto(arg1)
+        elif command == 'C_IF':
+            code_writer.write_if(arg1)
+        elif command == 'C_FUNCTION':
+            code_writer.write_function(arg1, arg2)
+        elif command == 'C_RETURN':
+            code_writer.write_return(arg1, arg2)
+        elif command == 'C_CALL':
+            code_writer.write_call(arg1, arg2)
         else:
             # Chapter 8...
             pass

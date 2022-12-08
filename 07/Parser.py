@@ -8,25 +8,26 @@ Unported [License](https://creativecommons.org/licenses/by-nc-sa/3.0/).
 from dataclasses import dataclass
 from typing import Dict, Tuple, List, TextIO
 
-CMD : Dict[str, str] = {
-        'add': 'C_ARITHMETIC',
-        'sub': 'C_ARITHMETIC',
-        'neg': 'C_ARITHMETIC',
-        'eq': 'C_ARITHMETIC',
-        'gt': 'C_ARITHMETIC',
-        'lt': 'C_ARITHMETIC',
-        'and': 'C_ARITHMETIC',
-        'or': 'C_ARITHMETIC',
-        'not': 'C_ARITHMETIC',
-        'push': 'C_PUSH',
-        'pop': 'C_POP',
-        'label': 'C_LABEL',
-        'goto': 'C_GOTO',
-        'if': 'C_IF',
-        'function': 'C_FUNCTION',
-        'return': 'C_RETURN',
-        'call': 'C_CALL',
-    }
+CMD: Dict[str, str] = {
+    'add': 'C_ARITHMETIC',
+    'sub': 'C_ARITHMETIC',
+    'neg': 'C_ARITHMETIC',
+    'eq': 'C_ARITHMETIC',
+    'gt': 'C_ARITHMETIC',
+    'lt': 'C_ARITHMETIC',
+    'and': 'C_ARITHMETIC',
+    'or': 'C_ARITHMETIC',
+    'not': 'C_ARITHMETIC',
+    'push': 'C_PUSH',
+    'pop': 'C_POP',
+    'label': 'C_LABEL',
+    'goto': 'C_GOTO',
+    'if': 'C_IF',
+    'function': 'C_FUNCTION',
+    'return': 'C_RETURN',
+    'call': 'C_CALL',
+}
+
 
 class Parser:
     """
@@ -73,12 +74,24 @@ class Parser:
         arg2: int
 
     @staticmethod
-    def parse_line(line : str) -> Tuple[str, str, str]:
+    def parse_line(line: str) -> Tuple[str, str, str]:
         splitted_line = line.split(' ')
-        command = CMD[splitted_line[0]] 
+        command = CMD[splitted_line[0]]
         if command == 'C_ARITHMETIC':
             return Parser.VMLine(command=command, arg1=splitted_line[0], arg2=None)
-        else:
+        elif command in ['C_PUSH', 'C_POP']:
+            return Parser.VMLine(command=command, arg1=splitted_line[1], arg2=int(splitted_line[2]))
+        elif command == 'C_LABEL':
+            return Parser.VMLine(command=command, arg1=splitted_line[1], arg2=None)
+        elif command == 'C_GOTO':
+            return Parser.VMLine(command=command, arg1=splitted_line[1], arg2=None)
+        elif command == 'C_IF':
+            return Parser.VMLine(command=command, arg1=splitted_line[1], arg2=None)
+        elif command == 'C_FUNCTION':
+            return Parser.VMLine(command=command, arg1=splitted_line[1], arg2=int(splitted_line[2]))
+        elif command == 'C_RETURN':
+            return Parser.VMLine(command=command, arg1=None, arg2=None)
+        elif command == 'C_CALL':
             return Parser.VMLine(command=command, arg1=splitted_line[1], arg2=int(splitted_line[2]))
 
     def __init__(self, input_file: TextIO) -> None:
@@ -91,13 +104,15 @@ class Parser:
         # A good place to start is to read all the lines of the input:
         input_lines = input_file.read().splitlines()
         # Save (index, line) for each line
-        indexed_lines : List[Tuple[int, str]] = list(enumerate(input_lines))
+        indexed_lines: List[Tuple[int, str]] = list(enumerate(input_lines))
 
         # Remove comments and empty rows
-        indexed_lines = list(filter(lambda line: line[1] and ('//' not in line[1]) and (not line[1].isspace()), indexed_lines))
+        indexed_lines = list(
+            filter(lambda line: line[1] and ('//' not in line[1]) and (not line[1].isspace()), indexed_lines))
 
         # Parse all lines
-        self.parsed_lines : List[Tuple[int, self.VMLine]] = list(map(lambda line: (line[0], self.parse_line(line[1])), indexed_lines))
+        self.parsed_lines: List[Tuple[int, self.VMLine]] = list(
+            map(lambda line: (line[0], self.parse_line(line[1])), indexed_lines))
 
         self.line_selector = 0
 
@@ -117,7 +132,6 @@ class Parser:
         """
         # Your code goes here!
         self.line_selector += 1
-
 
     def command_type(self) -> str:
         """

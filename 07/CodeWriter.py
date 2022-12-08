@@ -81,10 +81,13 @@ class CodeWriter:
 
         output_stream.write("(codeStart)\n")
 
+        self.cur_nvars = 0
         self.out = output_stream
         self.file_name = ""
         self.cur_label_index = 0
         self.label_dict = {}
+        self.cur_function = ''
+        self.cur_call_in_function = 0
 
     def set_file_name(self, filename: str) -> None:
         """Informs the code writer that the translation of a new VM file is 
@@ -284,7 +287,7 @@ class CodeWriter:
         """
         # This is irrelevant for project 7,
         # you will implement this in project 8!
-        label_name_in_file = f'{self.file_name}${label}'
+        label_name_in_file = f'{self.file_name}.{self.cur_function_name}${label}'
         self.out.write(f'0; JMP {label_name_in_file}')
 
     def write_if(self, label: str) -> None:
@@ -295,10 +298,12 @@ class CodeWriter:
         """
         # This is irrelevant for project 7,
         # you will implement this in project 8!
+        label_name_in_file = f'{self.file_name}.{self.cur_function_name}${label}'
         self.out.write("@SP \
                         \rM=M-1 \
-                        \rA=M \
-                        \rA; JNE\n")
+                        \rD=M \
+                        \r(label_name_in_file) \
+                        \rD; JNE\n")
 
     def write_function(self, function_name: str, n_vars: int) -> None:
         """Writes assembly code that affects the function command. 
@@ -327,6 +332,9 @@ class CodeWriter:
                             \r\tM=D \
                             \r\t@SP \
                             \r\tM=M+1\n")
+        self.cur_function = function_name
+        self.cur_nvars = n_vars
+        self.cur_call_in_function = 0
 
     def write_call(self, function_name: str, n_args: int) -> None:
         """Writes assembly code that affects the call command. 
@@ -356,7 +364,73 @@ class CodeWriter:
         # LCL = SP              // repositions LCL
         # goto function_name    // transfers control to the callee
         # (return_address)      // injects the return address label into the code
-        pass
+        return_address = f'{self.file_name}.{self.cur_function}$ret.{self.cur_call_in_function}'
+        to_write = f"""// Push return address
+@{return_address}
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+
+// Push LCL
+@LCL
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+
+// Push ARG
+@ARG
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+
+// Push THIS address
+@THIS
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+
+// Push THAT address
+@THAT
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+
+// ARG = SP-5-n_args
+@SP
+A=M
+D=M
+@5
+D=D-A
+@{n_args}
+D=D-A
+@ARG
+M=D
+
+// LCL = SP
+@SP
+D=M
+@LCL
+M=D
+
+@{self.cur_function}
+0; JMP
+({return_address})"""
+        self.out.write(to_write)
 
     def write_return(self) -> None:
         """Writes assembly code that affects the return command."""
