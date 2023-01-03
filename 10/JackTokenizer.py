@@ -100,7 +100,7 @@ class JackTokenizer:
             input_stream (typing.TextIO): input stream.
         """
         # Will be defined later
-        self.lines = None
+        self.token_list = None
         self.token = None
 
         # Constants
@@ -111,30 +111,29 @@ class JackTokenizer:
         self.symbols = ['{', '}', '(', ')', '[', ']', '.', ',', ';', '+', '-', '*', '/', '&', '|', '<', '>', '=', '~']
 
         self.set_lines(input_stream.read())
-        for line in self.lines:
-            print(line)
+        for token in self.token_list:
+            print(token)
+
         self.index = 0
-        self.len = len(self.lines)
+        self.len = len(self.token_list)
 
     def set_lines(self, input_stream):
-        print(input_stream)
         # Remove comments.
         input_stream = re.sub(r"(\/\/)([^\n\r]+)(\n||\r)", "", input_stream)
         input_stream = re.sub(r"(\/\*{1,2})([^\n\r]+)(\*\/)", "", input_stream)
         input_stream = re.sub(r"(\n|\r)\s*(\n|\r)", "", input_stream)
         input_stream = re.sub(r"(\n|\r)", "", input_stream)  # TODO: what happens if string has linebreak?
         input_stream = re.sub(r"(\t)", "", input_stream)
-        print(input_stream)
-        # print(input_stream)
+        for sym in self.symbols:
+            input_stream = re.sub(f"(\{sym})", f" {sym} ", input_stream)
         lines = re.split("(\n|\sclass\s|\sconstructor\s|\sfunction\s|\smethod\s|\sfield\s|\sstatic\s|\svar\s|\sint\s|"
                          "\schar\s|\sboolean\s|\svoid\s|\strue\s|\sfalse\s|\snull\s|\sthis\s|\slet\s|\sdo\s|\sif\s|"
                          "\selse\s|\swhile\s|\sreturn\s|\{|}|\(|\)|\[|]|\.|,|;|\+|-|\*|/|&|\||<|\>|\=|\~)",
                          input_stream)
-        # print("A", lines)
-        self.lines = []
+        self.token_list = []
         for line in lines:
             if not re.match("^\s*$", line):
-                self.lines.append(re.sub("(^\s*)|(\s*$)", "", line))
+                self.token_list.append(re.sub("(^\s*)|(\s*$)", "", line))
 
 
     def has_more_tokens(self) -> bool:
@@ -150,7 +149,7 @@ class JackTokenizer:
         This method should be called if has_more_tokens() is true. 
         Initially there is no current token.
         """
-        self.token = self.lines[self.index]
+        self.token = self.token_list[self.index]
         self.index += 1
 
     def token_type(self) -> str:
