@@ -114,6 +114,7 @@ class JackTokenizer:
 
         self.index = 0
         self.len = len(self.token_list)
+        self.write_xml()
 
     def set_lines(self, input_stream):
         # Remove comments.
@@ -125,9 +126,10 @@ class JackTokenizer:
         for sym in self.symbols:
             input_stream = re.sub(f"(\{sym})", f" {sym} ", input_stream)
 
-        lines = re.split("(\n|\sclass\s|\sconstructor\s|\sfunction\s|\smethod\s|\sfield\s|\sstatic\s|\svar\s|\sint\s|"
-                         "\schar\s|\sboolean\s|\svoid\s|\strue\s|\sfalse\s|\snull\s|\sthis\s|\slet\s|\sdo\s|\sif\s|"
-                         "\selse\s|\swhile\s|\sreturn\s|\{|}|\(|\)|\[|]|\.|,|;|\+|-|\*|/|&|\||<|\>|\=|\~)",
+
+        lines = re.split("(\n|Array\s|class\s|constructor\s|function\s|method\s|field\s|static\s|var\s|int\s|"
+                         "char\s|boolean\s|void\s|true\s|false\s|null\s|this\s|let\s|do\s|if\s|"
+                         "else\s|while\s|return\s|\{|}|\(|\)|\[|]|\.|,|;|\+|-|\*|/|&|\||<|\>|\=|\~)",
                          input_stream)
 
         self.token_list = []
@@ -157,13 +159,13 @@ class JackTokenizer:
             str: the type of the current token, can be
             "KEYWORD", "SYMBOL", "IDENTIFIER", "INT_CONST", "STRING_CONST"
         """
-        if self.token() in self.keywords:
+        if self.token in self.keywords:
             return "KEYWORD"
-        if self.token() in self.symbols:
+        if self.token in self.symbols:
             return "SYMBOL"
-        if re.match("^\d*$", self.token()):
+        if re.match("^\d*$", self.token):
             return "INT_CONST"
-        if re.match("^\"*\"$", self.token()):
+        if re.match("^\".*\"$", self.token):
             return "STRING_CONST"
         return "IDENTIFIER"
 
@@ -222,3 +224,24 @@ class JackTokenizer:
                       double quote or newline '"'
         """
         return self.token
+
+    def token_value(self):
+        if self.token_type() == "KEYWORD":
+            return self.keyword().lower()
+        if self.token_type() == "SYMBOL":
+            return self.symbol().lower()
+        if self.token_type() == "IDENTIFIER":
+            return self.identifier()
+        if self.token_type() == "INT_CONST":
+            return self.int_val()
+        if self.token_type() == "STRING_CONST":
+            return self.string_val()
+
+    def write_xml(self):
+        with open("Test_output.xml", "w") as f:
+            f.write("<tokens>\n")
+            while self.has_more_tokens():
+                self.advance()
+
+                f.write(f"<{self.token_type().lower()}> {self.token_value()} <\\{self.token_type().lower()}>\n")
+            f.write("<\\tokens>\n")
