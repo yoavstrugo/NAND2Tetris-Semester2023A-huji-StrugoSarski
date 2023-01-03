@@ -6,6 +6,7 @@ as allowed by the Creative Common Attribution-NonCommercial-ShareAlike 3.0
 Unported [License](https://creativecommons.org/licenses/by-nc-sa/3.0/).
 """
 import typing
+import re
 
 
 class JackTokenizer:
@@ -98,10 +99,20 @@ class JackTokenizer:
         Args:
             input_stream (typing.TextIO): input stream.
         """
-        # Your code goes here!
-        # A good place to start is to read all the lines of the input:
-        # input_lines = input_stream.read().splitlines()
-        pass
+        # Will be defined later
+        self.lines = None
+        self.token = None
+
+        self.set_lines(input_stream.read())
+        self.index = 0
+        self.len = len(self.lines)
+
+    def set_lines(self, input_stream):
+        # Remove comments.
+        input_stream = re.sub(r"(\/\/)([^\n\r]+)(\n||\r)", "", input_stream)
+        input_stream = re.sub(r"(\/\*{1,2})([^\n\r]+)(\*\/)", "", input_stream)
+        input_stream = re.sub(r"(\n|\r)\s*(\n|\r)", "\n", input_stream)
+        self.lines = input_stream.split()
 
     def has_more_tokens(self) -> bool:
         """Do we have more tokens in the input?
@@ -109,16 +120,15 @@ class JackTokenizer:
         Returns:
             bool: True if there are more tokens, False otherwise.
         """
-        # Your code goes here!
-        pass
+        return self.index < self.len
 
     def advance(self) -> None:
         """Gets the next token from the input and makes it the current token. 
         This method should be called if has_more_tokens() is true. 
         Initially there is no current token.
         """
-        # Your code goes here!
-        pass
+        self.token = self.lines[self.index]
+        self.index += 1
 
     def token_type(self) -> str:
         """
