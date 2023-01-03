@@ -111,8 +111,6 @@ class JackTokenizer:
         self.symbols = ['{', '}', '(', ')', '[', ']', '.', ',', ';', '+', '-', '*', '/', '&', '|', '<', '>', '=', '~']
 
         self.set_lines(input_stream.read())
-        for token in self.token_list:
-            print(token)
 
         self.index = 0
         self.len = len(self.token_list)
@@ -126,15 +124,16 @@ class JackTokenizer:
         input_stream = re.sub(r"(\t)", "", input_stream)
         for sym in self.symbols:
             input_stream = re.sub(f"(\{sym})", f" {sym} ", input_stream)
+
         lines = re.split("(\n|\sclass\s|\sconstructor\s|\sfunction\s|\smethod\s|\sfield\s|\sstatic\s|\svar\s|\sint\s|"
                          "\schar\s|\sboolean\s|\svoid\s|\strue\s|\sfalse\s|\snull\s|\sthis\s|\slet\s|\sdo\s|\sif\s|"
                          "\selse\s|\swhile\s|\sreturn\s|\{|}|\(|\)|\[|]|\.|,|;|\+|-|\*|/|&|\||<|\>|\=|\~)",
                          input_stream)
+
         self.token_list = []
         for line in lines:
             if not re.match("^\s*$", line):
                 self.token_list.append(re.sub("(^\s*)|(\s*$)", "", line))
-
 
     def has_more_tokens(self) -> bool:
         """Do we have more tokens in the input?
@@ -162,13 +161,11 @@ class JackTokenizer:
             return "KEYWORD"
         if self.token() in self.symbols:
             return "SYMBOL"
-
-        if self.token() in self.keywords:
-            return "KEYWORD"
-        if self.token() in self.keywords:
-            return "KEYWORD"
-        if self.token() in self.keywords:
-            return "KEYWORD"
+        if re.match("^\d*$", self.token()):
+            return "INT_CONST"
+        if re.match("^\"*\"$", self.token()):
+            return "STRING_CONST"
+        return "IDENTIFIER"
 
     def keyword(self) -> str:
         """
@@ -179,8 +176,7 @@ class JackTokenizer:
             "BOOLEAN", "CHAR", "VOID", "VAR", "STATIC", "FIELD", "LET", "DO", 
             "IF", "ELSE", "WHILE", "RETURN", "TRUE", "FALSE", "NULL", "THIS"
         """
-        # Your code goes here!
-        pass
+        return self.token.upper()
 
     def symbol(self) -> str:
         """
@@ -191,8 +187,7 @@ class JackTokenizer:
             symbol: '{' | '}' | '(' | ')' | '[' | ']' | '.' | ',' | ';' | '+' | 
               '-' | '*' | '/' | '&' | '|' | '<' | '>' | '=' | '~' | '^' | '#'
         """
-        # Your code goes here!
-        pass
+        return self.token
 
     def identifier(self) -> str:
         """
@@ -205,7 +200,7 @@ class JackTokenizer:
                   identifiers, so 'self' cannot be an identifier, etc'.
         """
         # Your code goes here!
-        pass
+        return self.token
 
     def int_val(self) -> int:
         """
@@ -215,8 +210,7 @@ class JackTokenizer:
             Recall that integerConstant was defined in the grammar like so:
             integerConstant: A decimal number in the range 0-32767.
         """
-        # Your code goes here!
-        pass
+        return self.token
 
     def string_val(self) -> str:
         """
@@ -227,5 +221,4 @@ class JackTokenizer:
             StringConstant: '"' A sequence of Unicode characters not including 
                       double quote or newline '"'
         """
-        # Your code goes here!
-        pass
+        return self.token
