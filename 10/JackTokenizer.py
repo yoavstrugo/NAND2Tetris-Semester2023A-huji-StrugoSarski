@@ -103,16 +103,39 @@ class JackTokenizer:
         self.lines = None
         self.token = None
 
+        # Constants
+        self.keywords = ['class', 'constructor', 'function', 'method', 'field', 'static', 'var', 'int', 'char',
+                         'boolean', 'void', 'true', 'false', 'null', 'this', 'let', 'do', 'if', 'else', 'while',
+                         'return']
+
+        self.symbols = ['{', '}', '(', ')', '[', ']', '.', ',', ';', '+', '-', '*', '/', '&', '|', '<', '>', '=', '~']
+
         self.set_lines(input_stream.read())
+        for line in self.lines:
+            print(line)
         self.index = 0
         self.len = len(self.lines)
 
     def set_lines(self, input_stream):
+        print(input_stream)
         # Remove comments.
         input_stream = re.sub(r"(\/\/)([^\n\r]+)(\n||\r)", "", input_stream)
         input_stream = re.sub(r"(\/\*{1,2})([^\n\r]+)(\*\/)", "", input_stream)
-        input_stream = re.sub(r"(\n|\r)\s*(\n|\r)", "\n", input_stream)
-        self.lines = input_stream.split()
+        input_stream = re.sub(r"(\n|\r)\s*(\n|\r)", "", input_stream)
+        input_stream = re.sub(r"(\n|\r)", "", input_stream)  # TODO: what happens if string has linebreak?
+        input_stream = re.sub(r"(\t)", "", input_stream)
+        print(input_stream)
+        # print(input_stream)
+        lines = re.split("(\n|\sclass\s|\sconstructor\s|\sfunction\s|\smethod\s|\sfield\s|\sstatic\s|\svar\s|\sint\s|"
+                         "\schar\s|\sboolean\s|\svoid\s|\strue\s|\sfalse\s|\snull\s|\sthis\s|\slet\s|\sdo\s|\sif\s|"
+                         "\selse\s|\swhile\s|\sreturn\s|\{|}|\(|\)|\[|]|\.|,|;|\+|-|\*|/|&|\||<|\>|\=|\~)",
+                         input_stream)
+        # print("A", lines)
+        self.lines = []
+        for line in lines:
+            if not re.match("^\s*$", line):
+                self.lines.append(re.sub("(^\s*)|(\s*$)", "", line))
+
 
     def has_more_tokens(self) -> bool:
         """Do we have more tokens in the input?
@@ -136,8 +159,17 @@ class JackTokenizer:
             str: the type of the current token, can be
             "KEYWORD", "SYMBOL", "IDENTIFIER", "INT_CONST", "STRING_CONST"
         """
-        # Your code goes here!
-        pass
+        if self.token() in self.keywords:
+            return "KEYWORD"
+        if self.token() in self.symbols:
+            return "SYMBOL"
+
+        if self.token() in self.keywords:
+            return "KEYWORD"
+        if self.token() in self.keywords:
+            return "KEYWORD"
+        if self.token() in self.keywords:
+            return "KEYWORD"
 
     def keyword(self) -> str:
         """
