@@ -254,7 +254,7 @@ class JackTokenizer:
                 "STRING_CONST": "stringConstant", "IDENTIFIER": "identifier"}[self.token_type()]
 
     def cur_token_toString(self):
-        return f"<{self.cur_token_type_toString()}> {self.token_value()} </{self.cur_token_type_toString()}>\n"
+        return f"<{self.cur_token_type_toString()}> {self.token_value()} </{self.cur_token_type_toString()}>"
 
     def write_xml(self):
         with open("Test_output.xml", "w") as f:
