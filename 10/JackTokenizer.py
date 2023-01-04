@@ -114,7 +114,6 @@ class JackTokenizer:
 
         self.index = 0
         self.len = len(self.token_list)
-        print("A")
         self.write_xml()
 
     def set_lines(self, input_stream):
@@ -129,12 +128,10 @@ class JackTokenizer:
         for sym in self.symbols:
             input_stream = re.sub(f"(\{sym})", f" {sym} ", input_stream)
 
-        print(input_stream)
 
         regex_rule = f"({seperator}" + f"{seperator}|{seperator}".join(self.keywords) + f"{seperator}|" + f"|".join(
             self.escaped_symbols) + f"{seperator})"
         lines = re.split(regex_rule, input_stream)
-        print(regex_rule)
 
         suspected_token_list = []
         for line in lines:
@@ -190,7 +187,7 @@ class JackTokenizer:
             "BOOLEAN", "CHAR", "VOID", "VAR", "STATIC", "FIELD", "LET", "DO", 
             "IF", "ELSE", "WHILE", "RETURN", "TRUE", "FALSE", "NULL", "THIS"
         """
-        return self.token.upper()
+        return self.token
 
     def symbol(self) -> str:
         """
@@ -201,6 +198,9 @@ class JackTokenizer:
             symbol: '{' | '}' | '(' | ')' | '[' | ']' | '.' | ',' | ';' | '+' | 
               '-' | '*' | '/' | '&' | '|' | '<' | '>' | '=' | '~' | '^' | '#'
         """
+        replace_dic = {"<": "&lt;", ">": "&gt;"}
+        if self.token in replace_dic:
+            return replace_dic[self.token]
         return self.token
 
     def identifier(self) -> str:
@@ -239,7 +239,7 @@ class JackTokenizer:
 
     def token_value(self):
         if self.token_type() == "KEYWORD":
-            return self.keyword().lower()
+            return self.keyword()
         if self.token_type() == "SYMBOL":
             return self.symbol().lower()
         if self.token_type() == "IDENTIFIER":
@@ -249,12 +249,12 @@ class JackTokenizer:
         if self.token_type() == "STRING_CONST":
             return re.sub("\"", "", self.string_val())
 
-    def cur_token_type_tostring(self):
+    def cur_token_type_toString(self):
         return {"KEYWORD": "keyword", "SYMBOL": "symbol", "INT_CONST": "integerConstant",
-                "STRING_CONST": "StringConstant", "IDENTIFIER": "identifier"}[self.token_type()]
+                "STRING_CONST": "stringConstant", "IDENTIFIER": "identifier"}[self.token_type()]
 
-    def cur_token_tostring(self):
-        return f"<{self.cur_token_type_tostring()}> {self.token_value()} </{self.cur_token_type_tostring()}>"
+    def cur_token_toString(self):
+        return f"<{self.cur_token_type_toString()}> {self.token_value()} </{self.cur_token_type_toString()}>"
 
     def write_xml(self):
         with open("Test_output.xml", "w") as f:
@@ -262,5 +262,5 @@ class JackTokenizer:
             while self.has_more_tokens():
                 self.advance()
 
-                f.write(f"{self.cur_token_tostring()}\n")
+                f.write(f"{self.cur_token_toString()}\n")
             f.write("<\\tokens>\n")
