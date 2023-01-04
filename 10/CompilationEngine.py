@@ -194,7 +194,53 @@ class CompilationEngine:
 
     def compile_if(self) -> None:
         """Compiles a if statement, possibly with a trailing else clause."""
+        """ - ifStatement: 'if' '(' expression ')' '{' statements '}' ('else' '{' 
+                statements '}')?"""
+        tokenizer = self.tokenizer
         self.out.write("<ifStatement>")
+        self.out.write(tokenizer.cur_token_toString())
+
+        assert tokenizer.token_type() == "SYMBOL", f"Expected to get SYMBOL, instead got {tokenizer.token_type()}"
+        assert tokenizer.symbol() == "(", f"Expected to get (, instead got {tokenizer.symbol()}"
+        self.out.write(tokenizer.cur_token_toString())
+
+        tokenizer.advance()
+        self.compile_expression()
+
+        assert tokenizer.token_type() == "SYMBOL", f"Expected to get SYMBOL, instead got {tokenizer.token_type()}"
+        assert tokenizer.symbol() == ")", f"Expected to get ), instead got {tokenizer.symbol()}"
+        self.out.write(tokenizer.cur_token_toString())
+
+        tokenizer.advance()
+        assert tokenizer.token_type() == "SYMBOL", f"Expected to get SYMBOL, instead got {tokenizer.token_type()}"
+        assert tokenizer.symbol() == "{", f"Expected to get {{, instead got {tokenizer.symbol()}"
+        self.out.write(tokenizer.cur_token_toString())
+
+        tokenizer.advance()
+        self.compile_statements()
+
+        tokenizer.advance()
+        assert tokenizer.token_type() == "SYMBOL", f"Expected to get SYMBOL, instead got {tokenizer.token_type()}"
+        assert tokenizer.symbol() == "}", f"Expected to get }}, instead got {tokenizer.symbol()}"
+        self.out.write(tokenizer.cur_token_toString())
+
+        tokenizer.advance()
+        if tokenizer.token_type() == "KEYWORD" and tokenizer.keyword() == "else":
+            self.out.write(tokenizer.cur_token_toString())
+
+            tokenizer.advance()
+            assert tokenizer.token_type() == "SYMBOL", f"Expected to get SYMBOL, instead got {tokenizer.token_type()}"
+            assert tokenizer.symbol() == "{", f"Expected to get {{, instead got {tokenizer.symbol()}"
+            self.out.write(tokenizer.cur_token_toString())
+
+            tokenizer.advance()
+            self.compile_statements()
+
+            tokenizer.advance()
+            assert tokenizer.token_type() == "SYMBOL", f"Expected to get SYMBOL, instead got {tokenizer.token_type()}"
+            assert tokenizer.symbol() == "{", f"Expected to get {{, instead got {tokenizer.symbol()}"
+            self.out.write(tokenizer.cur_token_toString())
+
         self.out.write("</ifStatement>")
 
     def compile_expression(self) -> None:
