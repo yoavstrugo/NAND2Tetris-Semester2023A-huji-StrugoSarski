@@ -8,7 +8,7 @@ Unported [License](https://creativecommons.org/licenses/by-nc-sa/3.0/).
 import os
 import sys
 import typing
-from CompilationEngine import CompilationEngine
+from CompilationEngine import CompilationEngine, Keywords, TokenTypes
 from JackTokenizer import JackTokenizer
 
 
@@ -26,7 +26,7 @@ def analyze_file(
     engine = CompilationEngine(tokenizer, output_file)
     
     tokenizer.advance()
-    assert tokenizer.token_type() == 'KEYWORD' and tokenizer.keyword() == 'CLASS', 'Expected a class decleration at the start of a file'
+    assert tokenizer.token_type() == TokenTypes.KEYWORD and tokenizer.keyword() == 'class', 'Expected a class decleration at the start of a file'
 
     engine.compile_class()
 
