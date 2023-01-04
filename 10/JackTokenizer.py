@@ -114,7 +114,7 @@ class JackTokenizer:
 
         self.index = 0
         self.len = len(self.token_list)
-        self.write_xml()
+        print("A")
 
     def set_lines(self, input_stream):
         seperator = "\\b"
