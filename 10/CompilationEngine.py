@@ -12,27 +12,25 @@ class MyEnumMeta(EnumMeta):
     def __contains__(cls, item): 
         return item in [v.value for v in cls.__members__.values()] 
 
-    def __eq__(cls, other):
-        """Overrides the default implementation"""
-        if isinstance(other, cls.__class__):
-            return cls.value == other.value
-        return False
+class MyEnum(Enum):
+    def __eq__(self, other):
+        return self.name == other
 
-class TokenTypes(Enum, metaclass=MyEnumMeta):
+class TokenTypes(MyEnum, metaclass=MyEnumMeta):
     IDENTIFIER = 'IDENTIFIER',
     SYMBOL = 'SYMBOL',
     KEYWORD = 'KEYWORD'
 
-class VarTypes(Enum, metaclass=MyEnumMeta):
+class VarTypes(MyEnum, metaclass=MyEnumMeta):
     INT = 'INT',
     CHAR = 'CHAR',
     BOOLEAN = 'BOOLEAN'
 
-class Keywords(Enum, metaclass=MyEnumMeta):
-    class ClassDecVar(Enum, metaclass=MyEnumMeta):
+class Keywords(MyEnum, metaclass=MyEnumMeta):
+    class ClassDecVar(MyEnum, metaclass=MyEnumMeta):
         STATIC = 'STATIC',
         FIELD = 'FIELD'
-    class SubroutineDec(Enum, metaclass=MyEnumMeta):
+    class SubroutineDec(MyEnum, metaclass=MyEnumMeta):
         CONSTURCTOR = 'CONSTURCTOR',
         FUNCTION = 'FUNCTION',
         METHOD = 'METHOD'
