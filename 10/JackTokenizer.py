@@ -109,7 +109,7 @@ class JackTokenizer:
                          'return']
 
         self.symbols = ['{', '}', '(', ')', '[', ']', '.', ',', ';', '+', '-', '*', '/', '&', '|', '<', '>', '=', '~']
-
+        self.escaped_symbols = [f"\\{sym}" for sym in self.symbols]
         self.set_lines(input_stream.read())
 
         self.index = 0
@@ -117,25 +117,36 @@ class JackTokenizer:
         # self.write_xml()
 
     def set_lines(self, input_stream):
+        seperator = "\\b"
         # Remove comments.
         input_stream = re.sub(r"(\/\/)([^\n\r]+)(\n||\r)", "", input_stream)
-        input_stream = re.sub(r"(\/\*{1,2})([^\n\r]+)(\*\/)", "", input_stream)
+        input_stream = re.sub(r"(\/\*{1,2})(.*?)(\*\/)", "", input_stream)
         input_stream = re.sub(r"(\n|\r)\s*(\n|\r)", "", input_stream)
         input_stream = re.sub(r"(\n|\r)", "", input_stream)  # TODO: what happens if string has linebreak?
         input_stream = re.sub(r"(\t)", "", input_stream)
+
         for sym in self.symbols:
             input_stream = re.sub(f"(\{sym})", f" {sym} ", input_stream)
 
+        print(input_stream)
 
-        lines = re.split("(\n|Array\s|class\s|constructor\s|function\s|method\s|field\s|static\s|var\s|int\s|"
-                         "char\s|boolean\s|void\s|true\s|false\s|null\s|this\s|let\s|do\s|if\s|"
-                         "else\s|while\s|return\s|\{|}|\(|\)|\[|]|\.|,|;|\+|-|\*|/|&|\||<|\>|\=|\~)",
-                         input_stream)
+        regex_rule = f"({seperator}" + f"{seperator}|{seperator}".join(self.keywords) + f"{seperator}|" + f"|".join(
+            self.escaped_symbols) + f"{seperator})"
+        lines = re.split(regex_rule, input_stream)
+        print(regex_rule)
 
-        self.token_list = []
+        suspected_token_list = []
         for line in lines:
             if not re.match("^\s*$", line):
-                self.token_list.append(re.sub("(^\s*)|(\s*$)", "", line))
+                suspected_token_list.append(re.sub("(^\s*)|(\s*$)", "", line))
+
+        self.token_list = []
+        for token in suspected_token_list:
+            if not re.match(r".*\s.*", token) or re.match(r".*\".*", token):
+                self.token_list.append(token)
+                continue
+
+            self.token_list.extend(re.split(r"\s", token))
 
     def has_more_tokens(self) -> bool:
         """Do we have more tokens in the input?
@@ -235,7 +246,7 @@ class JackTokenizer:
         if self.token_type() == "INT_CONST":
             return self.int_val()
         if self.token_type() == "STRING_CONST":
-            return self.string_val()
+            return re.sub("\"", "", self.string_val())
 
     def write_xml(self):
         with open("Test_output.xml", "w") as f:
@@ -243,5 +254,5 @@ class JackTokenizer:
             while self.has_more_tokens():
                 self.advance()
 
-                f.write(f"<{self.token_type().lower()}> {self.token_value()} <\\{self.token_type().lower()}>\n")
+                f.write(f"<{self.token_type().lower()}> {self.token_value()} </{self.token_type().lower()}>\n")
             f.write("<\\tokens>\n")
