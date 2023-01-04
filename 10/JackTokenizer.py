@@ -114,7 +114,8 @@ class JackTokenizer:
 
         self.index = 0
         self.len = len(self.token_list)
-        # self.write_xml()
+        print("A")
+        self.write_xml()
 
     def set_lines(self, input_stream):
         seperator = "\\b"
@@ -248,11 +249,18 @@ class JackTokenizer:
         if self.token_type() == "STRING_CONST":
             return re.sub("\"", "", self.string_val())
 
+    def cur_token_type_tostring(self):
+        return {"KEYWORD": "keyword", "SYMBOL": "symbol", "INT_CONST": "integerConstant",
+                "STRING_CONST": "StringConstant", "IDENTIFIER": "identifier"}[self.token_type()]
+
+    def cur_token_tostring(self):
+        return f"<{self.cur_token_type_tostring()}> {self.token_value()} </{self.cur_token_type_tostring()}>"
+
     def write_xml(self):
         with open("Test_output.xml", "w") as f:
             f.write("<tokens>\n")
             while self.has_more_tokens():
                 self.advance()
 
-                f.write(f"<{self.token_type().lower()}> {self.token_value()} </{self.token_type().lower()}>\n")
+                f.write(f"{self.cur_token_tostring()}\n")
             f.write("<\\tokens>\n")
