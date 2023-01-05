@@ -197,7 +197,7 @@ class JackTokenizer:
             symbol: '{' | '}' | '(' | ')' | '[' | ']' | '.' | ',' | ';' | '+' | 
               '-' | '*' | '/' | '&' | '|' | '<' | '>' | '=' | '~' | '^' | '#'
         """
-        replace_dic = {"<": "&lt;", ">": "&gt;"}
+        replace_dic = {"<": "&lt;", ">": "&gt;", "&": "&amp;"}
         if self.token in replace_dic:
             return replace_dic[self.token]
         return self.token

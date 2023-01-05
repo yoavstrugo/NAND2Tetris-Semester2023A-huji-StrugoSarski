@@ -24,7 +24,7 @@ class Operations(MyEnum, metaclass=MyEnumMeta):
     MINUS = '-'
     MUL = '*'
     DIV = '/'
-    AND = '&'
+    AND = '&amp;'
     OR = '|'
     LT = '&lt;'
     GT = '&gt;'
@@ -76,7 +76,7 @@ class Keywords:
         NULL = 'null'
         THIS = 'this'
 
-
+DEBUG = False
 class CompilationEngine:
     """Gets input from a JackTokenizer and emits its parsed structure into an
     output stream.
@@ -365,18 +365,24 @@ class CompilationEngine:
         self.tokenizer.advance()
 
     def printToken(self):
-        self.out.write('  '*self.tab_counter + self.tokenizer.cur_token_toString() + '\n')
-        # print('  '*self.tab_counter + self.tokenizer.cur_token_toString() )
+        if DEBUG:
+            print('  '*self.tab_counter + self.tokenizer.cur_token_toString() )
+        else:
+            self.out.write('  '*self.tab_counter + self.tokenizer.cur_token_toString() + '\n')
 
     def printOpening(self, name):
-        self.out.write('  '*self.tab_counter + f"<{name}>\n")
-        # print('  '*self.tab_counter + f"<{name}>")
+        if DEBUG:           
+            print('  '*self.tab_counter + f"<{name}>")
+        else:
+            self.out.write('  '*self.tab_counter + f"<{name}>\n")
         self.tab_counter += 1
 
     def printClosing(self, name):
         self.tab_counter -= 1
-        # print('  '*self.tab_counter + f"</{name}>")
-        self.out.write('  '*self.tab_counter + f"</{name}>\n")
+        if DEBUG:
+            print('  '*self.tab_counter + f"</{name}>")
+        else:
+            self.out.write('  '*self.tab_counter + f"</{name}>\n")
 
     def compile_statements(self) -> None:
         """Compiles a sequence of statements, not including the enclosing 
