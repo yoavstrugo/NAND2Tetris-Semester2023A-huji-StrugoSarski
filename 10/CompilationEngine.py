@@ -34,6 +34,8 @@ class Operations(MyEnum, metaclass=MyEnumMeta):
 class UnaryOperations(MyEnum, metaclass=MyEnumMeta):
     NEG = '-'
     NOT = '~'
+    LSHIFT = '^'
+    RSHIFT = '#'
 
 
 class TokenTypes(MyEnum, metaclass=MyEnumMeta):

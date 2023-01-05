@@ -1,0 +1,12 @@
+class Main {
+    static int y;
+    static int x;
+
+    function void main() {
+        let c = y + x;
+        let d = #c;
+        let e = #(x+1);
+
+        let f = ^y + #x - ~#x;
+    }
+}

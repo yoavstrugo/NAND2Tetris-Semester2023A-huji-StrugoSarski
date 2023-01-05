@@ -108,7 +108,7 @@ class JackTokenizer:
                          'boolean', 'void', 'true', 'false', 'null', 'this', 'let', 'do', 'if', 'else', 'while',
                          'return']
 
-        self.symbols = ['{', '}', '(', ')', '[', ']', '.', ',', ';', '+', '-', '*', '/', '&', '|', '<', '>', '=', '~']
+        self.symbols = ['{', '}', '(', ')', '[', ']', '.', ',', ';', '+', '-', '*', '/', '&', '|', '<', '>', '=', '~', '^', '#']
         self.escaped_symbols = [f"\\{sym}" for sym in self.symbols]
         self.set_lines(input_stream.read())
 
