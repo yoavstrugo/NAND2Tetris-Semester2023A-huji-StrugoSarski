@@ -130,7 +130,6 @@ class CompilationEngine:
             if keyword in Keywords.ClassDecVar:
                 # compile var decleration
                 self.compile_class_var_dec()
-                pass
             elif keyword in Keywords.SubroutineDec:
                 # continue to next loop to compile subroutines
                 break
@@ -163,7 +162,48 @@ class CompilationEngine:
         """Compiles a static declaration or a field declaration."""
         self.printOpening('classVarDec')
 
+        assert self.tokenizer.token_value() in Keywords.ClassDecVar, 'expeceted field or static'
+        self.printToken()
+
+        self.tokenizer.advance()
+
+        # type
+        assert self.tokenizer.token_type() in {
+            TokenTypes.KEYWORD.value, TokenTypes.IDENTIFIER.value}, 'keyword or identifier expected'
+        if self.tokenizer.token_type() == TokenTypes.KEYWORD:
+            assert self.tokenizer.token_value(
+            ) in VarTypes, f'Unknown var type {self.tokenizer.token_value()}'
+        self.printToken()
+
+        # name
+        self.tokenizer.advance()
+        assert self.tokenizer.token_type() == TokenTypes.IDENTIFIER, 'Identifier expected'
+        self.printToken()
+
+        self.tokenizer.advance()
+
+        while True:
+            if self.tokenizer.token_type() == TokenTypes.SYMBOL and self.tokenizer.symbol() == ';':
+                break
+
+            # ,
+            assert self.tokenizer.token_type(
+            ) == TokenTypes.SYMBOL and self.tokenizer.symbol() == ',', '\',\' expected'
+            self.printToken()
+
+            # name
+            self.tokenizer.advance()
+            assert self.tokenizer.token_type() == TokenTypes.IDENTIFIER, 'Identifier expected'
+            self.printToken()
+
+            self.tokenizer.advance()
+
+        # ;
+        assert self.tokenizer.token_type(
+        ) == TokenTypes.SYMBOL and self.tokenizer.token_value() == ';', '\';\' expected'
+        self.printToken()
         self.printClosing('classVarDec')
+        # self.tokenizer.advance()
 
     def compile_subroutine(self) -> None:
         """
@@ -181,9 +221,9 @@ class CompilationEngine:
 
         # return type
         self.tokenizer.advance()
-        assert self.tokenizer.token_type() == TokenTypes.KEYWORD, 'Expected a keyword'
+        assert self.tokenizer.token_type() in [TokenTypes.KEYWORD.value, TokenTypes.IDENTIFIER.value], 'Expected a keyword or identifier'
         return_type = self.tokenizer.keyword()
-        assert return_type == 'void' or return_type in VarTypes, 'Expected void or variable type'
+        assert return_type == 'void' or return_type in VarTypes or self.tokenizer.token_type() == TokenTypes.IDENTIFIER.value, 'Expected void or variable type'
         self.printToken()
 
         # routine name
@@ -229,15 +269,15 @@ class CompilationEngine:
         self.printToken()
         self.printClosing('subroutineBody')
         self.printClosing('subroutineDec')
+        self.tokenizer.advance()
 
     def compile_parameter_list(self) -> None:
         """Compiles a (possibly empty) parameter list, not including the 
         enclosing "()".
         """
-        self.printOpening('paramterList')
+        self.printOpening('parameterList')
 
         if self.tokenizer.symbol() != ')':
-            self.printToken()
             # type
             assert self.tokenizer.token_type() == TokenTypes.KEYWORD, 'Keyword expected'
             param_type = self.tokenizer.keyword()
@@ -250,6 +290,7 @@ class CompilationEngine:
             param_name = self.tokenizer.identifier()
             self.printToken()
 
+            self.tokenizer.advance()
             while True:
                 if self.tokenizer.token_type() == TokenTypes.SYMBOL and self.tokenizer.symbol() == ')':
                     break
@@ -271,8 +312,9 @@ class CompilationEngine:
                 assert self.tokenizer.token_type() == TokenTypes.IDENTIFIER, 'Identifier expected'
                 param_name = self.tokenizer.identifier()
                 self.printToken()
+                self.tokenizer.advance()
 
-        self.printClosing('paramterList')
+        self.printClosing('parameterList')
 
     def compile_var_dec(self) -> None:
         """Compiles a var declaration."""
@@ -323,22 +365,25 @@ class CompilationEngine:
         self.tokenizer.advance()
 
     def printToken(self):
-        print('\t'*self.tab_counter + self.tokenizer.cur_token_toString())
+        self.out.write('  '*self.tab_counter + self.tokenizer.cur_token_toString() + '\n')
+        # print('  '*self.tab_counter + self.tokenizer.cur_token_toString() )
 
     def printOpening(self, name):
-        print('\t'*self.tab_counter + f"<{name}>")
+        self.out.write('  '*self.tab_counter + f"<{name}>\n")
+        # print('  '*self.tab_counter + f"<{name}>")
         self.tab_counter += 1
 
     def printClosing(self, name):
         self.tab_counter -= 1
-        print('\t'*self.tab_counter + f"</{name}>")
+        # print('  '*self.tab_counter + f"</{name}>")
+        self.out.write('  '*self.tab_counter + f"</{name}>\n")
 
     def compile_statements(self) -> None:
         """Compiles a sequence of statements, not including the enclosing 
         "{}".
         """
-        assert self.tokenizer.token_type() == TokenTypes.KEYWORD and self.tokenizer.keyword(
-        ) in Keywords.Statements, 'Statement expected'
+        assert (self.tokenizer.token_type() == TokenTypes.KEYWORD and self.tokenizer.keyword(
+        ) in Keywords.Statements) or self.tokenizer.token_value() == '}', 'Statement expected'
         self.printOpening('statements')
 
         while self.tokenizer.token_type() == TokenTypes.KEYWORD and self.tokenizer.keyword() in Keywords.Statements:
@@ -357,8 +402,6 @@ class CompilationEngine:
             elif self.tokenizer.keyword() == Keywords.Statements.RETURN:
                 # return statement
                 self.compile_return()
-
-            self.tokenizer.advance()
 
         self.printClosing('statements')
 
@@ -393,7 +436,7 @@ class CompilationEngine:
 
         assert self.tokenizer.token_value() == ';', '; expected'
         self.printToken()
-        # self.tokenizer.advance()
+        self.tokenizer.advance()
 
         self.printClosing('doStatement')
 
@@ -431,7 +474,6 @@ class CompilationEngine:
             self.tokenizer.advance()
             assert self.tokenizer.token_type(
             ) == TokenTypes.SYMBOL and self.tokenizer.symbol() == '=', '\'=\' expected'
-            self.printToken()
 
         # print =
         self.printToken()
@@ -447,6 +489,7 @@ class CompilationEngine:
         self.printToken()
 
         self.printClosing('letStatement')
+        self.tokenizer.advance()
 
     def compile_while(self) -> None:
         """Compiles a while statement."""
@@ -457,6 +500,7 @@ class CompilationEngine:
         self.tokenizer.advance()
         assert self.tokenizer.token_value() == '(', '( expected'
         self.printToken()
+        self.tokenizer.advance()
         self.compile_expression()
         assert self.tokenizer.token_value() == ')', ') expected'
         self.printToken()
@@ -467,7 +511,7 @@ class CompilationEngine:
         self.compile_statements()
         assert self.tokenizer.token_value() == '}', '} expected'
         self.printToken()
-
+        self.tokenizer.advance()
         self.printClosing('whileStatement')
 
     def compile_return(self) -> None:
@@ -496,6 +540,7 @@ class CompilationEngine:
         tokenizer = self.tokenizer
         self.printToken()
 
+        self.tokenizer.advance()
         assert tokenizer.token_type(
         ) == "SYMBOL", f"Expected to get SYMBOL, instead got {tokenizer.token_type()}"
         assert tokenizer.symbol(
@@ -521,7 +566,6 @@ class CompilationEngine:
         tokenizer.advance()
         self.compile_statements()
 
-        tokenizer.advance()
         assert tokenizer.token_type(
         ) == "SYMBOL", f"Expected to get SYMBOL, instead got {tokenizer.token_type()}"
         assert tokenizer.symbol(
@@ -542,12 +586,13 @@ class CompilationEngine:
             tokenizer.advance()
             self.compile_statements()
 
-            tokenizer.advance()
             assert tokenizer.token_type(
             ) == "SYMBOL", f"Expected to get SYMBOL, instead got {tokenizer.token_type()}"
             assert tokenizer.symbol(
-            ) == "{", f"Expected to get {{, instead got {tokenizer.symbol()}"
+            ) == "}", f"Expected to get }}, instead got {tokenizer.symbol()}"
             self.printToken()
+            tokenizer.advance()
+
 
         self.printClosing('ifStatement')
 
@@ -597,9 +642,8 @@ class CompilationEngine:
             # )
             assert self.tokenizer.token_type() == TokenTypes.SYMBOL and self.tokenizer.symbol() == ')', '\')\' expected'
             self.printToken()
-        elif token in UnaryOperations:
             self.tokenizer.advance()
-
+        elif token in UnaryOperations:
             # term
             self.compile_term()
         elif token_t == TokenTypes.IDENTIFIER:
@@ -646,7 +690,12 @@ class CompilationEngine:
     def compile_expression_list(self) -> None:
         """Compiles a (possibly empty) comma-separated list of expressions."""
         self.printOpening('expressionList')
-        while self.tokenizer.token_value() != ')':
+        if self.tokenizer.token_value() != ')':
             self.compile_expression()
+
+            while self.tokenizer.token_value() == ',':
+                self.printToken()
+                self.tokenizer.advance()
+                self.compile_expression()
         self.printClosing('expressionList')
         
