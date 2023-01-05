@@ -114,20 +114,18 @@ class JackTokenizer:
 
         self.index = 0
         self.len = len(self.token_list)
-        print("A")
 
     def set_lines(self, input_stream):
         seperator = "\\b"
         # Remove comments.
         input_stream = re.sub(r"(\/\/)([^\n\r]+)(\n||\r)", "", input_stream)
-        input_stream = re.sub(r"(\/\*{1,2})(.*?)(\*\/)", "", input_stream)
         input_stream = re.sub(r"(\n|\r)\s*(\n|\r)", "", input_stream)
         input_stream = re.sub(r"(\n|\r)", "", input_stream)  # TODO: what happens if string has linebreak?
+        input_stream = re.sub(r"(\/\*)(.*)?(\*\/)", "", input_stream)
         input_stream = re.sub(r"(\t)", "", input_stream)
 
         for sym in self.symbols:
             input_stream = re.sub(f"(\{sym})", f" {sym} ", input_stream)
-
 
         regex_rule = f"({seperator}" + f"{seperator}|{seperator}".join(self.keywords) + f"{seperator}|" + f"|".join(
             self.escaped_symbols) + f"{seperator})"
